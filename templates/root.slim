@@ -1,32 +1,61 @@
 #root-content
+
+  button#add-tone-generator add tone generator
+  #tone-generators
+
+  #tone-generator-html.hidden
+    .bordered
+      button.start start tone generator
+      button.stop.hidden stop tone generator
+      br
+
+      input.freq type='range' min='0' max='500'
+      button.remove X
   
-  button#start-tone-generator start tone generator
-  button#stop-tone-generator.hidden stop tone generator
-  br
-
-  input#freq type='range' min='0' max='500'
-
 coffee:
 
+  # --------------------------------------------------
   # Tone generator
-  $start_btn = $root_content.find("#start-tone-generator")
-  $stop_btn = $root_content.find("#stop-tone-generator")
-  $freq_slider = $root_content.find("#freq")
+  # --------------------------------------------------
+  (->
 
-  $start_btn.on 'click', (e) =>
-    $start_btn.addClass "hidden"
-    $stop_btn.removeClass "hidden"
-    @tone_generator = new ToneGenerator()
-    @tone_generator.update type: "sine", freq: 200
-    @tone_generator.start()
+    # HTML for a tone generator row
+    tone_generator_html = $root_content.find("#tone-generator-html")[0].innerHTML
 
-  $stop_btn.on 'click', (e) =>
-    $stop_btn.addClass "hidden"
-    $start_btn.removeClass "hidden"      
-    @tone_generator.stop()
+    # Button to add a tone generator row
+    $add_tone_generator = $root_content.find("#add-tone-generator")
+    $tone_generators = $root_content.find("#tone-generators")
+    $add_tone_generator.on "click", (e) =>
+      $tone_generator = $ tone_generator_html
+      $tone_generators.append $tone_generator
 
-  $freq_slider.on 'input', (e) =>
-    freq = ~~$freq_slider.val()
-    @tone_generator.update { type: "sine", freq }
+      # Find controls of row
+      $start_btn = $tone_generator.find(".start")
+      $stop_btn = $tone_generator.find(".stop")
+      $freq_slider = $tone_generator.find(".freq")
+      $remove_btn = $tone_generator.find(".remove")
 
-  
+      # Start button for row
+      $start_btn.on 'click', (e) =>
+        $start_btn.addClass "hidden"
+        $stop_btn.removeClass "hidden"
+        @tone_generator = new ToneGenerator()
+        @tone_generator.update type: "sine", freq: 200
+        @tone_generator.start()
+
+      # Stop button for row
+      $stop_btn.on 'click', (e) =>
+        $stop_btn.addClass "hidden"
+        $start_btn.removeClass "hidden"      
+        @tone_generator.stop()
+
+      # Frequency slider for row
+      $freq_slider.on 'input', (e) =>
+        freq = ~~$freq_slider.val()
+        @tone_generator.update { type: "sine", freq }
+
+      # Remove button for row
+      $remove_btn.on 'click', (e) =>
+        @tone_generator.remove()
+    )()
+    
