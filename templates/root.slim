@@ -1,2 +1,32 @@
 #root-content
-  b root page
+  
+  button#start-tone-generator start tone generator
+  button#stop-tone-generator.hidden stop tone generator
+  br
+
+  input#freq type='range' min='0' max='500'
+
+coffee:
+
+  # Tone generator
+  $start_btn = $root_content.find("#start-tone-generator")
+  $stop_btn = $root_content.find("#stop-tone-generator")
+  $freq_slider = $root_content.find("#freq")
+
+  $start_btn.on 'click', (e) =>
+    $start_btn.addClass "hidden"
+    $stop_btn.removeClass "hidden"
+    @tone_generator = new ToneGenerator()
+    @tone_generator.update type: "sine", freq: 200
+    @tone_generator.start()
+
+  $stop_btn.on 'click', (e) =>
+    $stop_btn.addClass "hidden"
+    $start_btn.removeClass "hidden"      
+    @tone_generator.stop()
+
+  $freq_slider.on 'change', (e) =>
+    freq = ~~$freq_slider.val()
+    @tone_generator.update { type: "sine", freq }
+
+  

@@ -1,12 +1,20 @@
-ToneGenerator = require './lib/tone_generator.coffee'
+# --------------------------------------------------
+# Helper deps
+# --------------------------------------------------
 
-$ = require 'jquery'
-
-$layout_content = $ require "html-loader!./templates/layout.slim"
-$root_content = $ require "html-loader!./templates/root.slim"
+window.ToneGenerator = require './lib/tone_generator.coffee'
 
 # --------------------------------------------------
-# TEMPLATES ARE BIG STRINGS AT THIS POINT
+# Load templates as big strings
+# --------------------------------------------------
+
+window.$ = require 'jquery'
+
+window.$layout_content = $ require "html-loader!./templates/layout.slim"
+window.$root_content = $ require "html-loader!./templates/root.slim"
+
+# --------------------------------------------------
+# Attach templates to DOM, running their inline scripts
 # --------------------------------------------------
 
 $ ->
@@ -16,9 +24,3 @@ $ ->
 
   $root_wrapper = $ "#root-wrapper"
   $root_wrapper.append($root_content)
-
-# --------------------------------------------------
-# NOW THEY'RE ON THE DOM AND THEIR INLINE SCRIPTS ARE RUN
-# --------------------------------------------------
-
-new ToneGenerator()
