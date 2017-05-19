@@ -14,3 +14,8 @@ module.exports = class ToneGenerator
 
   stop: ->
     @oscillator.stop()
+
+  close: ->
+    @ctx.close()
+    # needs to be called, or else the browser's hardware limits will quickly be reached.
+    # For me, the limit is only 6 Audio Contexts.
