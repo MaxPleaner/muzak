@@ -25,7 +25,7 @@ coffee:
     $start_btn.removeClass "hidden"      
     @tone_generator.stop()
 
-  $freq_slider.on 'change', (e) =>
+  $freq_slider.on 'input', (e) =>
     freq = ~~$freq_slider.val()
     @tone_generator.update { type: "sine", freq }
 
