@@ -3,14 +3,25 @@ module.exports = class ToneGenerator
   constructor: ->
     @ctx = new AudioContext()
     @oscillator = @ctx.createOscillator()
-    @oscillator.connect @ctx.destination
+    @gain = @ctx.createGain()
+    @oscillator.connect(@gain)
+    @gain.connect @ctx.destination
 
   start: ->
     @oscillator.start(0)
 
-  update: ({type, freq}) ->
-    @oscillator.type = type
-    @oscillator.frequency.value = freq
+  update: ({oscillator, gain}) =>
+    if oscillator then @update_oscillator oscillator
+    if gain then @update_gain gain
+
+  update_oscillator: ({ type, freq }) =>
+    if type then @oscillator.type = type
+    if freq then @oscillator.frequency.value = freq
+
+  update_gain: ({ val }) =>
+    if val then @gain.gain.value = val
+    console.log @gain.gain.value
+    window.foo = @gain.gain
 
   stop: ->
     @oscillator.stop()

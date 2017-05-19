@@ -8,14 +8,19 @@ require './style.sass'
 # Helper deps
 # --------------------------------------------------
 
-
+# ... globals
+window.$ = require 'jquery'
 window.ToneGenerator = require './lib/tone_generator.coffee'
+
+# custom almost-global properties
+window.state = {}
+
+# custom almost-global functions
+window.helpers = {}
 
 # --------------------------------------------------
 # Load templates as big strings
 # --------------------------------------------------
-
-window.$ = require 'jquery'
 
 window.$layout_content = $ require "html-loader!./templates/layout.slim"
 window.$root_content = $ require "html-loader!./templates/root.slim"
