@@ -14,6 +14,8 @@ module.exports = class ToneGenerator
 
   stop: ->
     @oscillator.stop()
+    # Note that this is NOT like pause; it cannot be restarted afterward.
+    # Which begs the question of what the point of this method is
 
   close: ->
     @ctx.close()

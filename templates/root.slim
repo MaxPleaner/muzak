@@ -29,10 +29,6 @@ coffee:
     # Each row has handlers invoked in its own context (via the IEFE)
     $add_tone_generator.on "click", (e) -> (->
 
-      # Start sound module
-      @tone_generator = new ToneGenerator()
-      @tone_generator.playing = false
-    
       # Add the HTML to DOM
       @$row = $ tone_generator_html
       $tone_generators.append @$row
@@ -47,6 +43,8 @@ coffee:
       $start_btn.on 'click', (e) =>
         $start_btn.addClass "hidden"
         $stop_btn.removeClass "hidden"
+        @tone_generator = new ToneGenerator()
+        @tone_generator.playing = false
         @tone_generator.update type: "sine", freq: 200
         @tone_generator.start()
         @tone_generator.playing = true
@@ -56,6 +54,7 @@ coffee:
         $stop_btn.addClass "hidden"
         $start_btn.removeClass "hidden"      
         @tone_generator.stop()
+        @tone_generator.close()
         @tone_generator.playing = false
 
       # Frequency slider for row
