@@ -81,7 +81,7 @@ coffee:
       $start_btn.on 'click', (e) =>
         $start_btn.addClass "hidden"
         $stop_btn.removeClass "hidden"
-        @tone_generator = new ToneGenerator()
+        @tone_generator ||= new ToneGenerator()
         @tone_generator.playing = false
         @tone_generator.update default_tone
         @tone_generator.start()
