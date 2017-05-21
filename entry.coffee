@@ -1,4 +1,6 @@
-$ = require 'jquery'
+require './style.sass'
+
+window.$ = require 'jquery'
 
 $layout_content = $ require "html-loader!./templates/layout.slim"
 $root_content = $ require "html-loader!./templates/root.slim"

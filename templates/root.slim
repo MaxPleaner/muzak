@@ -1,2 +1,62 @@
 #root-content
-  b root page
+
+  #audios
+
+  #audio-template.hidden
+    button.play play
+    button.stop.hidden stop
+    
+  button#add-audio onclick='Events.add_audio()' add audio
+
+coffee:
+
+  $ ->
+
+    window.Utils = 
+      last_id: -1
+      context: new AudioContext()
+      nodes: {}
+      connect_node: (node) -> (-> 
+        source = @createBufferSource()
+        debugger
+        source.connect node
+        node.connect @destination
+      ).apply @context
+
+    window.Dom = 
+      audios: $("#audios")
+      audio_template: $("#audio-template")
+
+    window.Events =
+      add_audio: (e) -> (->
+
+        $template = $ Dom.audio_template[0].innerHTML
+        Dom.audios.append $template
+        $play_btn = $template.find(".play")
+        $stop_btn = $template.find(".stop")
+
+        id = (@last_id += 1)
+        $template.data("id", id)
+
+        oscillator = @context.createOscillator()
+        oscillator.type = 'sine'
+        oscillator.frequency.value = '200'
+        @nodes[id] = { oscillator }
+        oscillator.start()
+        # @connect_node oscillator
+
+        $play_btn.on "click", ->
+          $play_btn.addClass("hidden")
+          $stop_btn.removeClass("hidden")
+          # todo ...
+
+        $template.find(".stop").on "click", ->
+          $play_btn.removeClass("hidden")
+          $stop_btn.addClass("hidden")
+          # todo ...
+
+      ).apply Utils
+
+
+
+
