@@ -3,8 +3,9 @@
   #audios
 
   #audio-template.hidden
-    button.play play
-    button.stop.hidden stop
+    .audio-template-content
+      button.play play
+      button.stop.hidden stop
     
   button#add-audio onclick='Events.add_audio()' add audio
 
@@ -12,16 +13,50 @@ coffee:
 
   $ ->
 
+    class NodeBuilder
+      constructor: (context) ->
+        @context = context
+
+      #public
+      add_oscillator: ->
+        oscillator = @context.createOscillator()
+        oscillator.type = 'sine'
+        oscillator.frequency.value = '200'
+        @connect_destination oscillator
+        oscillator
+        
+      #private
+      connect_node: (node) ->
+        @connect_buffer_source node
+        @connect_destination node
+      connect_buffer_source: (node) -> (->
+        source = @createBufferSource()
+        source.connect node
+      ).apply @context
+      connect_destination: (node) -> (->
+        node.connect @destination
+      ).apply @context
+        
     window.Utils = 
       last_id: -1
       context: new AudioContext()
       nodes: {}
-      connect_node: (node) -> (-> 
-        source = @createBufferSource()
+      create_nodes: (id) ->
+        node_builder = new NodeBuilder(@context)
+        oscillator = node_builder.add_oscillator()
+        @nodes[id] = {
+          oscillator
+        }
         debugger
-        source.connect node
-        node.connect @destination
-      ).apply @context
+        Object.values(@nodes[id]).forEach (node) ->
+          node.start()
+
+      stop_nodes: (id) ->
+        Object.values(@nodes[id]).forEach (node) ->
+          node.disconnect(0)
+          node.stop()
+        @nodes[id] = {}
+
 
     window.Dom = 
       audios: $("#audios")
@@ -36,21 +71,14 @@ coffee:
         $stop_btn = $template.find(".stop")
 
         id = (@last_id += 1)
-        $template.data("id", id)
-
-        oscillator = @context.createOscillator()
-        oscillator.type = 'sine'
-        oscillator.frequency.value = '200'
-        @nodes[id] = { oscillator }
-        oscillator.start()
-        # @connect_node oscillator
-
-        $play_btn.on "click", ->
+        $play_btn.on "click", =>
+          @create_nodes(id)
           $play_btn.addClass("hidden")
           $stop_btn.removeClass("hidden")
           # todo ...
 
-        $template.find(".stop").on "click", ->
+        $template.find(".stop").on "click", =>
+          @stop_nodes(id)
           $play_btn.removeClass("hidden")
           $stop_btn.addClass("hidden")
           # todo ...
