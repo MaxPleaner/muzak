@@ -10,6 +10,10 @@ module.exports = class NodeBuilder
     @connect_destination oscillator
     oscillator
 
+  add_gain: ->
+    gain = @context.createGain()
+    @connect_node gain
+
   #private
   connect_node: (node) ->
     @connect_buffer_source node

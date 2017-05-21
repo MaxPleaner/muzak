@@ -8,6 +8,20 @@
       br
       button.play play
       button.stop.hidden stop
+      .dropdowns
+        select name='oscillator-type'
+          option value='sine' sine
+          option value='sawtooth' sawtooth
+          option value='triangle' triangle
+          option value='square' square
+
+      .sliders
+        input name='oscillator' type='range' min='0' max='500'
+        label for='oscillator' oscillator
+        br
+        input name='gain' type='range' min='0' max='300'
+        label for='gain' gain
+
     
   button#add-audio onclick='Events.add_audio()' add audio
 
@@ -26,6 +40,12 @@ coffee:
         Dom.audios.append $template
         $play_btn = $template.find(".play")
         $stop_btn = $template.find(".stop")
+        $remove_btn = $template.find(".remove")
+        sliders = 
+          $oscillator: $template.find(".sliders [name='oscillator']")
+          $gain: $template.find(".sliders [name='gain']")
+        dropdowns =
+          $oscillator_type: $template.find(".dropdowns [name='oscillator-type']")
 
         id = (@last_id += 1)
 
@@ -34,14 +54,28 @@ coffee:
           $play_btn.addClass("hidden")
           $stop_btn.removeClass("hidden")
 
-        $template.find(".stop").on "click", =>
+        $stop_btn.on "click", =>
           @stop_nodes(id)
           $play_btn.removeClass("hidden")
           $stop_btn.addClass("hidden")
 
-        $template.find(".remove").on "click", =>
+        $remove_btn.find(".remove").on "click", =>
           @stop_nodes(id)
           $template.remove()
+
+        sliders.$oscillator.on "input", =>
+          freq = sliders.$oscillator.val()
+          @nodes[id].oscillator.frequency.value = freq
+
+        sliders.$gain.on "input", =>
+          val = sliders.$gain.val()
+          @nodes[id].gain.value = val
+
+        dropdowns.$oscillator_type.on "change", =>
+          type = dropdowns.$oscillator_type.val()
+          @nodes[id].oscillator.type = type
+
+          
 
       ).apply Utils
 
