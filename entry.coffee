@@ -2,6 +2,9 @@ require './style.sass'
 
 window.$ = require 'jquery'
 
+window.NodeBuilder = require './lib/node_builder.coffee'
+window.Utils = require './lib/utils.coffee'
+
 $layout_content = $ require "html-loader!./templates/layout.slim"
 $root_content = $ require "html-loader!./templates/root.slim"
 

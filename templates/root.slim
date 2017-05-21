@@ -13,51 +13,6 @@ coffee:
 
   $ ->
 
-    class NodeBuilder
-      constructor: (context) ->
-        @context = context
-
-      #public
-      add_oscillator: ->
-        oscillator = @context.createOscillator()
-        oscillator.type = 'sine'
-        oscillator.frequency.value = '200'
-        @connect_destination oscillator
-        oscillator
-        
-      #private
-      connect_node: (node) ->
-        @connect_buffer_source node
-        @connect_destination node
-      connect_buffer_source: (node) -> (->
-        source = @createBufferSource()
-        source.connect node
-      ).apply @context
-      connect_destination: (node) -> (->
-        node.connect @destination
-      ).apply @context
-        
-    window.Utils = 
-      last_id: -1
-      context: new AudioContext()
-      nodes: {}
-      create_nodes: (id) ->
-        node_builder = new NodeBuilder(@context)
-        oscillator = node_builder.add_oscillator()
-        @nodes[id] = {
-          oscillator
-        }
-        debugger
-        Object.values(@nodes[id]).forEach (node) ->
-          node.start()
-
-      stop_nodes: (id) ->
-        Object.values(@nodes[id]).forEach (node) ->
-          node.disconnect(0)
-          node.stop()
-        @nodes[id] = {}
-
-
     window.Dom = 
       audios: $("#audios")
       audio_template: $("#audio-template")
