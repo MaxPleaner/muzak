@@ -1,23 +1,10 @@
-This provides a starting point for a webpack application.
+- **built with** [webpack_boiler](http://github.com/maxpleaner/webpack_boiler)
 
-It has the loader set up for .coffee, .slim, .sass files
-(for those who pang for ruby)
+**what is?**
 
-It also comes with some extra NPM packages which are unused.
+it's a website to make sounds. It uses "Web Audio" a HTML5 Javascript API.
 
-I might remove these in the future or add more loaders.
+it has the ability to create multiple inputs and effects and combine them into a single output node that makes the
+sounds audible to the listener. this output node's sound gets analyzed to determine what note it is (like a guitar tuner)
 
-This is a work in progress
-
----
-
-To use:
-
-1. clone
-2. npm install
-3. npm run dev
-
-to get ready for production
-
-1. npm run deploy
-2. push dist folder to a static host
+It's visible on github pages here: http://maxpleaner.github.io/muzak

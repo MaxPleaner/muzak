@@ -3,7 +3,9 @@
   #audios
 
   #audio-template.hidden
-    .audio-template-content
+    .audio-template-content.box
+      button.remove X
+      br
       button.play play
       button.stop.hidden stop
     
@@ -26,17 +28,20 @@ coffee:
         $stop_btn = $template.find(".stop")
 
         id = (@last_id += 1)
+
         $play_btn.on "click", =>
           @create_nodes(id)
           $play_btn.addClass("hidden")
           $stop_btn.removeClass("hidden")
-          # todo ...
 
         $template.find(".stop").on "click", =>
           @stop_nodes(id)
           $play_btn.removeClass("hidden")
           $stop_btn.addClass("hidden")
-          # todo ...
+
+        $template.find(".remove").on "click", =>
+          @stop_nodes(id)
+          $template.remove()
 
       ).apply Utils
 
