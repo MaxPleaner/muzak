@@ -12,6 +12,8 @@ module.exports = Utils =
     # add individual nodes    
     oscillator = node_builder.add_oscillator()
     gain = node_builder.add_gain()
+    oscillator.connect(gain)
+    gain.connect(@context.destination)
 
     @nodes[id] = { oscillator, gain }
     Object.values(@nodes[id]).forEach (node) =>
@@ -32,3 +34,14 @@ module.exports = Utils =
 
   stop_node: (node) ->
     node.stop() if node.stop
+
+  # connect_node: (node) ->
+  #   @connect_buffer_source node
+  #   @connect_destination node
+
+  # connect_buffer_source: (node, target) -> (->
+  #   source = target.createBufferSource()
+  #   source.connect node
+
+  # connect_destination: (node, target) -> (->
+  #   node.connect target.destination

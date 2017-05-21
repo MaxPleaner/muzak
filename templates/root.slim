@@ -19,7 +19,7 @@
         input name='oscillator' type='range' min='0' max='500'
         label for='oscillator' oscillator
         br
-        input name='gain' type='range' min='0' max='300'
+        input name='gain' type='range' min='0.5' max='10' step='0.01' value='1'
         label for='gain' gain
 
     
@@ -64,12 +64,12 @@ coffee:
           $template.remove()
 
         sliders.$oscillator.on "input", =>
-          freq = sliders.$oscillator.val()
+          freq = ~~sliders.$oscillator.val()
           @nodes[id].oscillator.frequency.value = freq
 
         sliders.$gain.on "input", =>
-          val = sliders.$gain.val()
-          @nodes[id].gain.value = val
+          val = ~~sliders.$gain.val()
+          @nodes[id].gain.gain.value = val
 
         dropdowns.$oscillator_type.on "change", =>
           type = dropdowns.$oscillator_type.val()

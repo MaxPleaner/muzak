@@ -7,21 +7,7 @@ module.exports = class NodeBuilder
     oscillator = @context.createOscillator()
     oscillator.type = 'sine'
     oscillator.frequency.value = '200'
-    @connect_destination oscillator
     oscillator
 
   add_gain: ->
     gain = @context.createGain()
-    @connect_node gain
-
-  #private
-  connect_node: (node) ->
-    @connect_buffer_source node
-    @connect_destination node
-  connect_buffer_source: (node) -> (->
-    source = @createBufferSource()
-    source.connect node
-  ).apply @context
-  connect_destination: (node) -> (->
-    node.connect @destination
-  ).apply @context
