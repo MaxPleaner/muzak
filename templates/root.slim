@@ -16,11 +16,13 @@
           option value='square' square
 
       .sliders
-        input name='oscillator' type='range' min='0' max='500'
+        input name='oscillator' type='range' min='0' max='9000'
         label for='oscillator' oscillator
         br
         input name='gain' type='range' min='0.5' max='10' step='0.01' value='1'
         label for='gain' gain
+
+  #analyser.box
 
     
   button#add-audio onclick='Events.add_audio()' add audio
@@ -29,9 +31,12 @@ coffee:
 
   $ ->
 
+    Utils.init_analyser()
+
     window.Dom = 
       audios: $("#audios")
       audio_template: $("#audio-template")
+      analyser: $("#analyser")
 
     window.Events =
       add_audio: (e) -> (->
@@ -59,7 +64,7 @@ coffee:
           $play_btn.removeClass("hidden")
           $stop_btn.addClass("hidden")
 
-        $remove_btn.find(".remove").on "click", =>
+        $remove_btn.on "click", =>
           @stop_nodes(id)
           $template.remove()
 

@@ -29,6 +29,7 @@
     "jquery": "^3.2.1",
     "node-sass": "^4.5.2",
     "sass-loader": "^6.0.3",
+    "signaltohertz": "^0.1.1",
     "slim-lang-loader": "0.0.7",
     "style-loader": "^0.16.1",
     "vue": "^2.2.6",

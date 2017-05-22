@@ -2,6 +2,8 @@ require './style.sass'
 
 window.$ = require 'jquery'
 
+window.sig2hz = require 'signaltohertz'
+
 window.NodeBuilder = require './lib/node_builder.coffee'
 window.Utils = require './lib/utils.coffee'
 

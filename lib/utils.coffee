@@ -4,6 +4,21 @@ module.exports = Utils =
 
   context: new AudioContext()
 
+  init_analyser: ->
+    @analyser = @context.createAnalyser()
+    requestAnimationFrame @analyser_tick
+
+  analyser_tick: -> (->
+    requestAnimationFrame(@analyser_tick)
+    window.data_arr = new Float32Array(@analyser.frequencyBinCount)
+
+    window.data = @analyser.getFloatFrequencyData(data_arr)
+    freq = sig2hz(data_arr)
+    
+    # amplitude = new Uint8Array(@analyser.fre.quencyBinCount)
+  ).apply Utils
+
+
   nodes: {}
 
   create_nodes: (id) ->
@@ -13,7 +28,8 @@ module.exports = Utils =
     oscillator = node_builder.add_oscillator()
     gain = node_builder.add_gain()
     oscillator.connect(gain)
-    gain.connect(@context.destination)
+    gain.connect @analyser
+    @analyser.connect(@context.destination)
 
     @nodes[id] = { oscillator, gain }
     Object.values(@nodes[id]).forEach (node) =>
