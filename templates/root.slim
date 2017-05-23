@@ -16,10 +16,10 @@
           option value='square' square
 
       .sliders
-        input name='oscillator' value='200' type='range' min='0' max='500'
+        input name='oscillator' value='200' type='range' step='any' min='0' max='500'
         label for='oscillator' oscillator
         br
-        input name='gain' type='range' min='0.5' max='10' step='0.1' value='1'
+        input name='gain' type='range' min='1' max='5' step='1' value='1'
         label for='gain' gain
 
   button#add-audio onclick='Events.add_audio()' add audio
