@@ -4,20 +4,47 @@ module.exports = Utils =
 
   context: new AudioContext()
 
-  init_analyser: ->
+  init_analyser: (callback) ->
+    callback ||= ->
     @analyser = @context.createAnalyser()
-    requestAnimationFrame @analyser_tick
+    @analyser.connect @context.destination
+    @analyser.fftSize = 2048
+    requestAnimationFrame @analyser_tick(callback)
 
-  analyser_tick: -> (->
-    requestAnimationFrame(@analyser_tick)
-    window.data_arr = new Float32Array(@analyser.frequencyBinCount)
+  analyser_tick: (callback) ->
+    -> (->
+      requestAnimationFrame(@analyser_tick(callback))
+      buffer_len = @analyser.frequencyBinCount
+      frequencies = new Uint8Array(buffer_len)
+      @analyser.getByteTimeDomainData frequencies
+      hz = sig2hz(frequencies)
+      note = @identify_note(hz)
+      @add_data_point(note, callback)
+    ).apply Utils
 
-    window.data = @analyser.getFloatFrequencyData(data_arr)
-    freq = sig2hz(data_arr)
-    
-    # amplitude = new Uint8Array(@analyser.fre.quencyBinCount)
+  data_points:
+    notes: []
+
+  get_average: (nums) ->
+    real_nums = (num for num in nums when not isNaN num)
+    sum = real_nums.reduce (memo, num) ->
+      memo + num
+    , 0
+    sum / real_nums.length
+
+  data_point_collection_len: 50
+
+  add_data_point: (note, callback) -> (->
+    notes = @data_points.notes    
+    notes.push note
+    if notes.length > @data_point_collection_len
+      avg = @get_average(notes)
+      @data_points.notes = []
+      callback({note: avg})
   ).apply Utils
 
+  identify_note: (hz) ->
+    (12 * (Math.log2(hz / 440))) + 49
 
   nodes: {}
 
@@ -29,7 +56,6 @@ module.exports = Utils =
     gain = node_builder.add_gain()
     oscillator.connect(gain)
     gain.connect @analyser
-    @analyser.connect(@context.destination)
 
     @nodes[id] = { oscillator, gain }
     Object.values(@nodes[id]).forEach (node) =>
@@ -51,13 +77,13 @@ module.exports = Utils =
   stop_node: (node) ->
     node.stop() if node.stop
 
-  # connect_node: (node) ->
-  #   @connect_buffer_source node
-  #   @connect_destination node
+  # connect_node: (node, target) ->
+  #   @connect_buffer_source node, target
+  #   @connect_destination node, target
 
-  # connect_buffer_source: (node, target) -> (->
+  # connect_buffer_source: (node, target) ->
   #   source = target.createBufferSource()
   #   source.connect node
 
-  # connect_destination: (node, target) -> (->
+  # connect_destination: (node, target) ->
   #   node.connect target.destination
