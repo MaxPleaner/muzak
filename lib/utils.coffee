@@ -15,8 +15,8 @@ module.exports = Utils =
     -> (->
       requestAnimationFrame(@analyser_tick(callback))
       buffer_len = @analyser.frequencyBinCount
-      frequencies = new Uint8Array(buffer_len)
-      @analyser.getByteTimeDomainData frequencies
+      frequencies = new Float32Array(buffer_len)
+      @analyser.getFloatFrequencyData frequencies
       hz = sig2hz(frequencies)
       note = @identify_note(hz)
       @add_data_point(note, callback)
@@ -32,7 +32,7 @@ module.exports = Utils =
     , 0
     sum / real_nums.length
 
-  data_point_collection_len: 50
+  data_point_collection_len: 1
 
   add_data_point: (note, callback) -> (->
     notes = @data_points.notes    
