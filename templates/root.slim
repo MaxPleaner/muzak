@@ -1,4 +1,8 @@
 #root-content
+  
+  #credentials
+  button#logout onclick="Events.logout()" logout
+  br
 
   .title.major-component
     i.title-text
@@ -100,6 +104,10 @@ coffee:
       Dom.analyser_semitones.text(semitones) unless isNaN semitones
 
     window.Events =
+
+      logout: -> (->
+        firebase.auth().signOut()
+      ).apply Utils
 
       show_analyser: -> (->
         if Dom.show_analyser_btn.data("state") == "open"

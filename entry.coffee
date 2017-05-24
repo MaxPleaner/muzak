@@ -23,14 +23,6 @@ Object.assign window, {
   $, firebase, sig2hz, NodeBuilder, Utils, db
 }
 
-# the on_success callback isn't used here
-# since it turns out firebase tracks the current user
-# via firebase.auth().currentUser
-auth_filter = ({on_success}) ->
-  $("body").on "auth_done", (e) ->
-    $auth_wrapper.remove()
-    on_success(e)
-
 $ ->
 
   $layout_wrapper = $ "#layout-wrapper"
@@ -41,10 +33,9 @@ $ ->
       $auth_content.remove()
       $root_wrapper = $ "#root-wrapper"
       $root_wrapper.append($root_content)
+      $credentials = $root_content.find "#credentials"
+      $credentials.text "logged in as #{user.email}"
     else
       $root_content.remove()
       $auth_wrapper = $ "#auth-wrapper"
       $auth_wrapper.append $auth_content
-
-
-  auth_filter on_success: ({email, uid, pass}) ->
