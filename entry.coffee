@@ -5,6 +5,7 @@ $ = require 'jquery'
 firebase = require 'firebase/app'
 require 'firebase/auth'
 require 'firebase/storage'
+require 'firebase/database'
 
 FirebaseWrapper = require './lib/firebase_wrapper.coffee'
 
@@ -17,11 +18,11 @@ $layout_content = $ require "html-loader!./templates/layout.slim"
 $root_content = $ require "html-loader!./templates/root.slim"
 $auth_content = $ require "html-loader!./templates/auth.slim"
 
-db = new FirebaseWrapper({firebase})
-
 Object.assign window, {
-  $, firebase, sig2hz, NodeBuilder, Utils, db
+  $, firebase, sig2hz, NodeBuilder, Utils
 }
+
+window.db = new FirebaseWrapper({firebase})
 
 $ ->
 
@@ -30,6 +31,8 @@ $ ->
 
   firebase.auth().onAuthStateChanged (user) ->
     if user
+      window.UID = user.uid
+      db.ready()
       $auth_content.remove()
       $root_wrapper = $ "#root-wrapper"
       $root_wrapper.append($root_content)
