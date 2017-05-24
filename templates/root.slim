@@ -1,4 +1,30 @@
 #root-content
+
+  .title.major-component
+    i.title-text
+      .title-text-content
+        span Build
+        br
+        span sounds
+    .title-buttons
+      button#add-audio onclick='Events.add_audio()' add oscillator
+      button#record onclick='Events.record()' record
+      button#show-analyser {
+        onclick='Events.show_analyser()'
+        title='uses equal temperament scale'
+      } analyser
+    br
+    #analyser.box.hidden
+      .analyser-metric.box
+        span#note ? 
+        span &nbsp note 
+      .analyser-metric.box
+        span#semitones ? 
+        span &nbsp semitones 
+      .analyser-metric.box
+        span#hz ? 
+        span &nbsp hz 
+
   
   #recordings
 
@@ -97,13 +123,13 @@ coffee:
           @analyser.disconnect()
           @analyser.connect @context.destination
           @media_recorder.stop()
-          Dom.record_btn.text("start").data("playing", "false")
+          Dom.record_btn.text("record").data("playing", "false")
         else
           @analyser.disconnect()
           @analyser.connect @media_stream
           @media_stream.connect @context.destination
           @media_recorder.start(1000)
-          Dom.record_btn.text("stop").data("playing", "true")
+          Dom.record_btn.text("record (stop)").data("playing", "true")
       ).apply Utils
 
       add_audio: (e) -> (->

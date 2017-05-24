@@ -1,20 +1,41 @@
 require './style.sass'
 
-window.$ = require 'jquery'
+$ = require 'jquery'
 
-window.sig2hz = require 'signaltohertz'
+firebase = require 'firebase/app'
+require 'firebase/auth'
+require 'firebase/storage'
 
-window.NodeBuilder = require './lib/node_builder.coffee'
-window.Utils = require './lib/utils.coffee'
+FirebaseWrapper = require './lib/firebase_wrapper.coffee'
+
+sig2hz = require 'signaltohertz'
+
+NodeBuilder = require './lib/node_builder.coffee'
+Utils = require './lib/utils.coffee'
 
 $layout_content = $ require "html-loader!./templates/layout.slim"
 $root_content = $ require "html-loader!./templates/root.slim"
+$auth_content = $ require "html-loader!./templates/auth.slim"
+
+db = new FirebaseWrapper({firebase})
+
+Object.assign window, {
+  $, firebase, sig2hz, NodeBuilder, Utils, db
+}
+
+auth_filter = ({on_success}) ->
+  $auth_wrapper = $ "#auth-wrapper"
+  $auth_wrapper.append $auth_content
+    
+  $("body").on "auth_done", (e) ->
+    on_success(e)
 
 $ ->
 
   $layout_wrapper = $ "#layout-wrapper"
   $layout_wrapper.append($layout_content)
 
-  $root_wrapper = $ "#root-wrapper"
-  console.log $root_wrapper
-  $root_wrapper.append($root_content)
+  auth_filter on_success: ({credentials}) ->
+    debugger
+    $root_wrapper = $ "#root-wrapper"
+    $root_wrapper.append($root_content)

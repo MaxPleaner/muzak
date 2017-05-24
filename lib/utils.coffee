@@ -31,9 +31,9 @@ module.exports = Utils =
     @media_recorder.onstop = (evt) =>
       blob = new Blob @media_recorder_chunks,
         'type': 'audio/ogg; codecs=opus'
-      debugger
       url = URL.createObjectURL blob
       filename = "#{@random_string()}.webm"
+      db.store_audio(blob, filename)
       $audio = $ """
         <section class='audio'>
           <audio controls></audio>

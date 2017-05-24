@@ -1,0 +1,106 @@
+#auth-content
+  
+  #errors
+
+  button#sign-in-selector sign in
+  button#register-selector.selected register
+
+  #sign-in-form.hidden
+    input.email type='text' placeholder='email'
+    br
+    input.pass type='password' placeholder='password'
+    br
+    input#sign-in-submit type='submit' value='login'
+
+  #register-form
+    input.email type='text' placeholder='email'
+    br
+    input.pass type='password' placeholder='password'
+    br
+    input.pass-confirm type='password' placeholder='confirm'
+    br    
+    input#register-submit type='submit' value='register'
+
+coffee:
+
+
+  auth_done = ({email, uid}) ->
+    event = new Event('auth_done', {email, uid})
+    $("body")[0].dispatchEvent event
+
+  $auth_content = $ "#auth-content"
+  $sign_in_selector = $auth_content.find("#sign-in-selector")
+  $register_selector = $auth_content.find("#register-selector")
+  $sign_in_form = $auth_content.find("#sign-in-form")
+  $register_form = $auth_content.find("#register-form")  
+  $sign_in_submit = $auth_content.find("#sign-in-submit")
+  $register_submit = $auth_content.find("#register-submit")
+  $errors = $auth_content.find "#errors"
+
+  $sign_in_email = $sign_in_form.find('.email')
+  $sign_in_pass = $sign_in_form.find('.pass')
+
+  $register_email = $register_form.find('.email')
+  $register_pass = $register_form.find('.pass')  
+  $register_pass_confirm = $register_form.find ".pass-confirm"
+
+  add_error = (msg) ->
+    $error = $ """
+      <li style='color: darkred'></li>
+    """
+    $errors.append $error.text(msg)
+    setTimeout $error.remove, 2500
+
+  valid_email = (email)  ->
+    regex = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+    regex.test(email)
+
+  valid_password = (password) ->
+    unless password.length >= 6
+      add_error "password must be >= 6 chars"
+      return false
+    true
+
+  valid_credentials = (type, email, password, pass_confirm) ->
+    unless valid_email(email)
+      add_error "email is not valid"
+      return false
+    unless valid_password(password)
+      add_error "password is not valid"
+      return false
+    if type == "register"
+      unless password == pass_confirm
+        add_error "password and confirmation aren't equal"
+        return false
+    true
+
+  $sign_in_selector.on "click", (e) ->
+    $sign_in_form.removeClass "hidden"
+    $register_form.addClass "hidden"
+
+  $register_selector.on "click", (e) ->
+    $sign_in_form.addClass "hidden"
+    $register_form.removeClass "hidden"
+
+  $sign_in_submit.on "click", ->
+    email = $sign_in_email.val()
+    pass = $sign_in_pass.val()
+    if valid_credentials("sign_in", email, pass)
+      firebase.auth().signInWithEmailAndPassword(
+        email, pass
+      )
+      .then(auth_done)
+      .catch (err) ->
+        add_error("#{err.code} #{err.message}")
+
+  $register_submit.on "click", ->
+    email = $register_email.val()
+    pass = $register_pass.val()
+    pass_confirm = $register_pass_confirm.val()
+    if valid_credentials("register", email, pass, pass_confirm)
+      firebase.auth().createUserWithEmailAndPassword(
+        email, pass
+      )
+      .then(auth_done)
+      .catch (err) ->
+        add_error("#{err.code} #{err.message}")    
