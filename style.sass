@@ -1,11 +1,47 @@
+@mixin default-colors
+  background-color: darken(brown, 32%)
+  color: grey
+
+@mixin background-body
+  background-color: rgba(50,50,50,0.5)
+  margin: 10px
+
 body, html
   width: 100%
   height: 100%
 
-.box
-  border: 1px solid black
+select
+  @include default-colors
+  @include background-body
+  border: none
+
+input
+  @include background-body
+
+body
+  @include default-colors
+  // padding: 10px
+
+.title
+  @include default-colors
+  @include background-body
+  font-size: 20px
+  padding: 10px
+  display: block
+  margin: 20px
+  font-weight: bold
+
+button
+  @include default-colors
+  @include background-body
+  border: none
+  padding: 10px
   margin: 10px
-  padding: 5px
+
+.box
+  @include background-body
+  margin: 10px
+  padding: 10px
   display: inline-block
   
 .hidden
