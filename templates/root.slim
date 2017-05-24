@@ -1,13 +1,19 @@
 #root-content
+  
+  .box
+    button#add-audio onclick='Events.add_audio()' add audio
+    button#record onclick='Events.record()' record
+
+  #recordings
 
   #audios
 
   #audio-template.hidden
     .audio-template-content.box
       button.remove X
-      br
       button.play play
       button.stop.hidden stop
+      br
       .dropdowns
         select name='oscillator-type'
           option value='sine' sine
@@ -16,14 +22,14 @@
           option value='square' square
 
       .sliders
-        input name='oscillator' value='200' type='range' step='sany' min='1' max='500'
-        label for='oscillator' oscillator
-        br
-        input name='gain' type='range' min='0.01' max='1' step='any' value='1'
-        label for='gain' gain
-
-  button#add-audio onclick='Events.add_audio()' add audio
-  br
+        table
+          th tone
+          th gain
+          tr
+            td
+              input name='oscillator' value='200' type='range' step='sany' min='1' max='500' orient='vertical'
+            td
+              input name='gain' type='range' min='0.01' max='1' step='any' value='1' orient='vertical'
   
   #analyser.box
     .analyser-metric.box
@@ -44,11 +50,13 @@ coffee:
 
     window.Dom = (->
       @audios = $("#audios")
+      @recordings = $("#recordings")
       @audio_template = $("#audio-template")
       @analyser = $("#analyser")
       @analyser_note = @analyser.find("#note")
       @analyser_hz = @analyser.find("#hz")
       @analyser_semitones = @analyser.find("#semitones")
+      @record_btn = $("#record")
       this
     ).apply {}
 
@@ -57,8 +65,23 @@ coffee:
       Dom.analyser_hz.text(hz) unless isNaN hz
       Dom.analyser_semitones.text(semitones) unless isNaN semitones
 
-
     window.Events =
+
+      record: (e) -> (->
+        if Dom.record_btn.data("playing") == "true"
+          @media_stream.disconnect()
+          @analyser.disconnect()
+          @analyser.connect @context.destination
+          @media_recorder.stop()
+          Dom.record_btn.text("start").data("playing", "false")
+        else
+          @analyser.disconnect()
+          @analyser.connect @media_stream
+          @media_stream.connect @context.destination
+          @media_recorder.start(1000)
+          Dom.record_btn.text("stop").data("playing", "true")
+      ).apply Utils
+
       add_audio: (e) -> (->
 
         $template = $ Dom.audio_template[0].innerHTML

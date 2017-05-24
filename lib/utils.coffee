@@ -6,10 +6,34 @@ module.exports = Utils =
 
   init_analyser: (callback) ->
     callback ||= ->
+    @media_stream = @context.createMediaStreamDestination()
+    @media_recorder = new MediaRecorder(@media_stream.stream)
+    @init_media_recorder()
     @analyser = @context.createAnalyser()
     @analyser.connect @context.destination
     @analyser.fftSize = 2048
     requestAnimationFrame @analyser_tick(callback)
+
+  media_recorder_chunks: []
+
+  init_media_recorder: ->
+
+    @media_recorder.onerror = (e) =>
+      console.log "ERR"
+      debugger
+
+    @media_recorder.ondataavailable = (evt) =>
+      @media_recorder_chunks.push evt.data
+
+    @media_recorder.onstop = (evt) =>
+      blob = new Blob @media_recorder_chunks,
+        'type': 'audio/ogg; codecs=opus'
+      $aud = $ """
+      <audio controls>
+      </audio>
+      """
+      $aud.attr('src', URL.createObjectURL blob)
+      Dom.recordings.append $aud
 
   analyser_tick: (callback) ->
     -> (->

@@ -27,7 +27,9 @@ module.exports = {
       // Sass files once required are automatically attached to the dom.
       // example: require("foo.sass")
       {test: /\.sass$/, loader: "style-loader!css-loader!sass-loader" },
-      {exclude: ['./node_modules']}
+      {exclude: ['./node_modules']},
+
+      {test: /\.css$/, loader: 'style-loader!css-loader'}
 
     ]
   },
