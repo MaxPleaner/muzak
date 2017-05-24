@@ -65,7 +65,7 @@ module.exports = Utils =
           "c", 'c#', 'd', 'd#', 'e', 'f', 'f#', 
           'g', 'g#', 'a', 'a#', 'b'
         ]
-    idx = Math.round(num_semitones % scale_notes.length)
+    idx = Math.round((num_semitones - 4) % scale_notes.length)
     # console.log(idx)
     scale_notes[idx]
 
