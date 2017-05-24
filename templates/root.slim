@@ -1,15 +1,11 @@
 #root-content
   
-  .box
-    button#add-audio onclick='Events.add_audio()' add audio
-    button#record onclick='Events.record()' record
-
   #recordings
 
   #audios
 
   #audio-template.hidden
-    .audio-template-content.box
+    .audio-template-content.box.major-component
       button.remove X
       button.play play
       button.stop.hidden stop
@@ -23,24 +19,31 @@
 
       .sliders
         table
-          th tone
-          th gain
+          th
+            span tone
+            br
+            input.small-input.tone-value {
+              type='number'
+              min='1'
+              max='500'
+              step='10'
+            }
+
+          th
+            span gain
+            br
+            input.small-input.gain-value {
+              type='number'
+              min='0.01'
+              max='20'
+              step='0.5'
+            }
+
           tr
             td
               input name='oscillator' value='200' type='range' step='sany' min='1' max='500' orient='vertical'
             td
-              input name='gain' type='range' min='0.01' max='1' step='any' value='1' orient='vertical'
-  
-  #analyser.box
-    .analyser-metric.box
-      i note
-      #note
-    .analyser-metric.box
-      i semitones
-      #semitones
-    .analyser-metric.box
-      i hz
-      #hz
+              input name='gain' type='range' min='0.01' max='20' step='any' value='1' orient='vertical'
 
     
 
@@ -57,8 +60,13 @@ coffee:
       @analyser_hz = @analyser.find("#hz")
       @analyser_semitones = @analyser.find("#semitones")
       @record_btn = $("#record")
+      @show_analyser_btn = $("#show-analyser")
       this
     ).apply {}
+
+    window.DomState = 
+      analyser_visible: false
+      audio_playing: false
 
     Utils.init_analyser ({note, hz, semitones}) ->
       Dom.analyser_note.text(note)
@@ -66,6 +74,22 @@ coffee:
       Dom.analyser_semitones.text(semitones) unless isNaN semitones
 
     window.Events =
+
+      show_analyser: -> (->
+        if Dom.show_analyser_btn.data("state") == "open"
+          Dom.show_analyser_btn
+          .text("analyser")
+          .data("state", "closed")
+          Dom.analyser.addClass "hidden"
+          DomState.analyser_visible = false
+        else
+          Dom.show_analyser_btn
+          .text("analyer (close)")
+          .data("state", "open")
+          Dom.analyser.removeClass "hidden"
+          DomState.analyser_visible = true
+
+      ).apply Utils
 
       record: (e) -> (->
         if Dom.record_btn.data("playing") == "true"
@@ -94,6 +118,9 @@ coffee:
           $gain: $template.find(".sliders [name='gain']")
         dropdowns =
           $oscillator_type: $template.find(".dropdowns [name='oscillator-type']")
+        $tone_value = $template.find(".tone-value")
+        $gain_value = $template.find(".gain-value")
+
 
         id = (@last_id += 1)
 
@@ -113,15 +140,34 @@ coffee:
 
         sliders.$oscillator.on "input", =>
           freq = parseFloat sliders.$oscillator.val()
-          @nodes[id].oscillator.frequency.value = freq
+          $tone_value.val(freq)
+          if @nodes[id]
+            oscillator = @nodes[id].oscillator
+            if oscillator
+              oscillator.frequency.value = freq
+
+        sliders.$oscillator.trigger("input")
 
         sliders.$gain.on "input", =>
           val = parseFloat sliders.$gain.val()
-          @nodes[id].gain.gain.value = val
+          $gain_value.val(val.toPrecision(4))
+          if @nodes[id]
+            gain = @nodes[id].gain
+            if gain
+              gain.gain.value = val
+
+        sliders.$gain.trigger("input")
 
         dropdowns.$oscillator_type.on "change", =>
           type = dropdowns.$oscillator_type.val()
           @nodes[id].oscillator.type = type
+
+        $tone_value.on "input", (e) =>
+          sliders.$oscillator.val $tone_value.val()
+
+        $gain_value.on "input", (e) =>
+          sliders.$gain.val $gain_value.val()
+
 
           
 
