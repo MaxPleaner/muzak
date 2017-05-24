@@ -18,12 +18,16 @@ module.exports = Utils =
       frequencies = new Float32Array(buffer_len)
       @analyser.getFloatFrequencyData frequencies
       hz = sig2hz(frequencies)
-      note = @identify_note(hz)
-      @add_data_point(note, callback)
+      num_semitones_datum = @identify_note(hz)
+      @add_data_point({num_semitones_datum, hz}, callback)
     ).apply Utils
 
   data_points:
-    notes: []
+    idx: 0
+    num_semitones: []
+    hertz: []
+
+  scale: "standard"
 
   get_average: (nums) ->
     real_nums = (num for num in nums when not isNaN num)
@@ -32,16 +36,38 @@ module.exports = Utils =
     , 0
     sum / real_nums.length
 
-  data_point_collection_len: 1
+  data_point_collection_len: 10
 
-  add_data_point: (note, callback) -> (->
-    notes = @data_points.notes    
-    notes.push note
-    if notes.length > @data_point_collection_len
-      avg = @get_average(notes)
-      @data_points.notes = []
-      callback({note: avg})
+  add_data_point: ({num_semitones_datum, hz}, callback) -> (->
+    num_semitones = @data_points.num_semitones
+    hertz = @data_points.hertz
+    hertz.push hz
+    num_semitones.push num_semitones_datum
+    @data_points.idx += 1
+    if @data_points.idx > @data_point_collection_len
+      @data_points.idx = 0
+      avg_semitones = @get_average(num_semitones)
+      avg_hz = @get_average hertz
+      @data_points.num_semitones = []
+      @data_points.hertz = []
+      note = @get_note(avg_semitones)
+      callback({
+        note,
+        semitones: avg_semitones,
+        hz: avg_hz
+      })
   ).apply Utils
+
+  get_note: (num_semitones) ->
+    scale_notes = switch @scale
+      when "standard"
+        [
+          "c", 'c#', 'd', 'd#', 'e', 'f', 'f#', 
+          'g', 'g#', 'a', 'a#', 'b'
+        ]
+    idx = Math.round(num_semitones % scale_notes.length)
+    # console.log(idx)
+    scale_notes[idx]
 
   identify_note: (hz) ->
     (12 * (Math.log2(hz / 440))) + 49

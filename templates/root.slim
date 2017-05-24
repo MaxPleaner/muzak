@@ -16,16 +16,25 @@
           option value='square' square
 
       .sliders
-        input name='oscillator' value='200' type='range' step='any' min='0' max='500'
+        input name='oscillator' value='200' type='range' step='any' min='1' max='500'
         label for='oscillator' oscillator
         br
-        input name='gain' type='range' min='1' max='5' step='1' value='1'
+        input name='gain' type='range' min='0.01' max='5' step='any' value='1'
         label for='gain' gain
 
   button#add-audio onclick='Events.add_audio()' add audio
   br
   
   #analyser.box
+    .analyser-metric.box
+      i note
+      #note
+    .analyser-metric.box
+      i semitones
+      #semitones
+    .analyser-metric.box
+      i hz
+      #hz
 
     
 
@@ -33,13 +42,21 @@ coffee:
 
   $ ->
 
-    window.Dom = 
-      audios: $("#audios")
-      audio_template: $("#audio-template")
-      analyser: $("#analyser")
+    window.Dom = (->
+      @audios = $("#audios")
+      @audio_template = $("#audio-template")
+      @analyser = $("#analyser")
+      @analyser_note = @analyser.find("#note")
+      @analyser_hz = @analyser.find("#hz")
+      @analyser_semitones = @analyser.find("#semitones")
+      this
+    ).apply {}
 
-    Utils.init_analyser ({note}) ->
-      Dom.analyser.text(note)
+    Utils.init_analyser ({note, hz, semitones}) ->
+      Dom.analyser_note.text(note)
+      Dom.analyser_hz.text(hz) unless isNaN hz
+      Dom.analyser_semitones.text(semitones) unless isNaN semitones
+
 
     window.Events =
       add_audio: (e) -> (->
@@ -72,11 +89,11 @@ coffee:
           $template.remove()
 
         sliders.$oscillator.on "input", =>
-          freq = ~~sliders.$oscillator.val()
+          freq = parseFloat sliders.$oscillator.val()
           @nodes[id].oscillator.frequency.value = freq
 
         sliders.$gain.on "input", =>
-          val = ~~sliders.$gain.val()
+          val = parseFloat sliders.$gain.val()
           @nodes[id].gain.gain.value = val
 
         dropdowns.$oscillator_type.on "change", =>
