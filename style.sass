@@ -58,12 +58,14 @@ body
   position: relative
 
 .title-buttons
+
   display: inline-block
   position: relative
   top: -10px
   margin-right: 10px
+
   button
-    // color: darken(lightblue, 45%)
+
     padding: 10px
     border-radius: 50px
     background-color: rgba(50,50,50,0.25)
@@ -77,10 +79,11 @@ button
   display: inline-block
 
 button, select
+
   background: none
 
 button, select, input[type='range'], option
-  // padding: 20px
+
   &:hover
     cursor: pointer
     background-color: darken(brown, 35%)
@@ -90,14 +93,10 @@ button.remove
 
   color: red
   border-radius: 50px
-  // background: none
-  // &:hover
-  //   box-shadow: 0 0 1px red
 
 .box
 
   background-color: rgba(50,50,50,0.5)
-  // margin: 5px
   display: inline-block
 
 .dropdowns
@@ -118,21 +117,56 @@ input[type='range']
   width: 20px
 
 .sliders th
+
   margin: none
   padding: 5px
   font-size: 14px
 
 #analyser
-  // margin: 5px
+
   padding-top: 5px
   background: none
+
   .analyser-metric
+
     background-color: rgba(50,50,50,0.5)
     margin: 5px
-    // background: none
     padding: 10px
-    // box-shadow: 0 0 2px white
     margin: 0 5px
 
 .small-input
+
   width: 50px
+
+#recordings
+
+  display: inline-block
+  margin: 20px
+  background-color: rgba(50,50,50,0.5)
+  border-radius: 20px
+  padding: 15px
+  
+.audio-options
+
+  display: inline-block
+  font-size: 15px
+
+  button, a
+
+    border-radius: 50px
+    background-color: rgba(50,50,50,0.25)
+    padding: 10px
+    display: inline-block
+    background-color: rgba(50,50,50,0.25)
+  
+    &:hover
+
+      background-color: black
+
+  a
+    text-decoration: none
+    color: darken(lightblue, 45%)
+
+
+#audios
+  margin-left: 15px

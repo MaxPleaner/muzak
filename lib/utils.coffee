@@ -16,6 +16,9 @@ module.exports = Utils =
 
   media_recorder_chunks: []
 
+  random_string: (length) ->
+    Math.random().toString(36).substring(length || 7);
+
   init_media_recorder: ->
 
     @media_recorder.onerror = (e) =>
@@ -28,12 +31,23 @@ module.exports = Utils =
     @media_recorder.onstop = (evt) =>
       blob = new Blob @media_recorder_chunks,
         'type': 'audio/ogg; codecs=opus'
-      $aud = $ """
-      <audio controls>
-      </audio>
+      debugger
+      url = URL.createObjectURL blob
+      filename = "#{@random_string()}.webm"
+      $audio = $ """
+        <section class='audio'>
+          <audio controls></audio>
+          <br>
+          <section class='audio-options'>
+            <a href='#{url} download=''>download</a>
+            <button class='remove'>remove</button>
+          </section>
+        <section>
       """
-      $aud.attr('src', URL.createObjectURL blob)
-      Dom.recordings.append $aud
+      $audio.find("audio").attr('src', url)
+      Dom.recordings.append $audio
+      $audio.find(".remove").on "click", ->
+        $audio.remove()
 
   analyser_tick: (callback) ->
     -> (->

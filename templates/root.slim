@@ -163,10 +163,14 @@ coffee:
           @nodes[id].oscillator.type = type
 
         $tone_value.on "input", (e) =>
-          sliders.$oscillator.val $tone_value.val()
+          oscillator = sliders.$oscillator
+          oscillator.val $tone_value.val()
+          oscillator.trigger "input"
 
         $gain_value.on "input", (e) =>
-          sliders.$gain.val $gain_value.val()
+          gain = sliders.$gain
+          gain.val $gain_value.val()
+          gain.trigger "input"
 
 
           
