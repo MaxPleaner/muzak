@@ -23,10 +23,10 @@
 
 coffee:
 
-
-  auth_done = ({email, uid}) ->
-    event = new Event('auth_done', {email, uid})
-    $("body")[0].dispatchEvent event
+  auth_done = (pass) ->
+    ({email, uid}) ->
+      event = new Event('auth_done', {email, uid, pass})
+      $("body")[0].dispatchEvent event
 
   $auth_content = $ "#auth-content"
   $sign_in_selector = $auth_content.find("#sign-in-selector")
@@ -89,7 +89,7 @@ coffee:
       firebase.auth().signInWithEmailAndPassword(
         email, pass
       )
-      .then(auth_done)
+      .then(auth_done(pass))
       .catch (err) ->
         add_error("#{err.code} #{err.message}")
 
@@ -101,6 +101,6 @@ coffee:
       firebase.auth().createUserWithEmailAndPassword(
         email, pass
       )
-      .then(auth_done)
+      .then(auth_done(pass))
       .catch (err) ->
         add_error("#{err.code} #{err.message}")    

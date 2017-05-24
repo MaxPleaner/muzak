@@ -36,7 +36,7 @@ module.exports = Utils =
       db.store_audio(blob, filename)
       $audio = $ """
         <section class='audio'>
-          <audio controls></audio>
+          <audio loop controls></audio>
           <br>
           <section class='audio-options'>
             <a href='#{url} download=''>download</a>
