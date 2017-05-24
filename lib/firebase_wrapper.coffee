@@ -27,8 +27,11 @@ module.exports = FirebaseWrapper = class
     @store_audio_metadata filename, {status: "OK"}
     ref.put(blob)
     .then (snapshot) =>
-  
-      filenames = Object.keys(snapshot.val())
+      obj = snapshot.val()
+      if typeof(obj) == 'object'
+        filenames = Object.keys(obj).map (key) ->
+          "#{key}.webm"
+        Utils.sync_audio_state(filenames)
 
   store_audio_metadata: (filename, data) ->
     file_key = filename.replace(".webm", "")

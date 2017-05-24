@@ -4,6 +4,9 @@ module.exports = Utils =
 
   context: new AudioContext()
 
+  sync_audio_state: (filenames) ->
+    # TODO
+
   init_analyser: (callback) ->
     callback ||= ->
     @media_stream = @context.createMediaStreamDestination()
