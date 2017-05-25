@@ -6,10 +6,10 @@ body, html
 
 select
 
-  background-color: darken(brown, 32%)
-  color: grey
+  background-color: darken(rgba(100,100,100,0.5), 32%)
+  color: darken(white, 5%)
 
-  background-color: rgba(50,50,50,0.5)
+  background-color: rgba(200,200,200,0.5)
   margin: 5px
 
   border: none
@@ -22,10 +22,10 @@ option
 
 body
 
+  font-size: 18px
   margin-top: 10px
-
-  background-color: darken(brown, 32%)
-  color: grey
+  background-color: darken(rgba(100,100,100,0.5), 32%)
+  color: darken(white, 5%)
 
 .major-component
 
@@ -36,10 +36,10 @@ body
 
 .title
 
-  background-color: darken(brown, 32%)
-  color: grey
+  background-color: darken(rgba(100,100,100,0.5), 32%)
+  color: darken(white, 5%)
 
-  background-color: rgba(50,50,50,0.5)
+  background-color: rgba(200,200,200,0.5)
 
   padding: 10px
   display: inline-block
@@ -47,6 +47,8 @@ body
   margin-bottom: 0px
   margin-left: 20px
   border-radius: 20px
+  position: relative
+  top: 20px
 
 .title-text
 
@@ -68,11 +70,12 @@ body
 
     padding: 10px
     border-radius: 50px
-    background-color: rgba(50,50,50,0.25)
+    background-color: rgba(200,200,200,0.25)
 
 button
 
-  color: darken(lightblue, 45%)
+  color: darken(aqua, 25%)
+  font-size: 18px
   margin: 5px
 
   border: none
@@ -82,11 +85,18 @@ button, select
 
   background: none
 
-button, select, input[type='range'], option
+#logout, #show-grid
+  padding: 10px
+  border-radius: 50px
+  background-color: rgba(200,200,200,0.25)
+//   &:hover
+//     cursor: pointer
+//     background-color: darken(rgba(100,100,100,0.5), 35%)
 
+button, select, input[type='range'], option, #logout, #show-grid
   &:hover
     cursor: pointer
-    background-color: darken(brown, 35%)
+    background-color: darken(rgba(100,100,100,0.5), 35%)
     
 
 button.remove
@@ -96,7 +106,7 @@ button.remove
 
 .box
 
-  background-color: rgba(50,50,50,0.5)
+  background-color: rgba(200,200,200,0.5)
   display: inline-block
 
 .dropdowns
@@ -123,13 +133,16 @@ input[type='range']
   font-size: 14px
 
 #analyser
-
+  margin-top: 50px
+  border-radius: 50px
+  // background-color: rgba(200,200,200,0.25)
+  border: 1px solid white
+  margin-left: 20px
   padding-top: 5px
-  background: none
+  // background: none
 
   .analyser-metric
-
-    background-color: rgba(50,50,50,0.5)
+    background: none
     margin: 5px
     padding: 10px
     margin: 0 5px
@@ -141,7 +154,6 @@ input[type='range']
 #recordings
 
   display: inline-block
-  margin: 20px
 
   audio
 
@@ -158,10 +170,10 @@ input[type='range']
   button, a
 
     border-radius: 50px
-    background-color: rgba(50,50,50,0.25)
+    background-color: rgba(200,200,200,0.25)
     padding: 10px
     display: inline-block
-    background-color: rgba(50,50,50,0.25)
+    background-color: rgba(200,200,200,0.25)
   
     &:hover
 
@@ -169,15 +181,16 @@ input[type='range']
 
   a
     text-decoration: none
-    color: darken(lightblue, 45%)
+    color: darken(aqua, 25%)
 
 
 #audios
   margin-left: 15px
+  margin-bottom: 20px
 
 .audio
   padding: 15px
-  background-color: rgba(50,50,50,0.5)
+  background-color: rgba(200,200,200,0.5)
   border-radius: 20px
 
 #credentials
@@ -199,12 +212,33 @@ input[type='range']
   display: inline-block
 
 .remove-row
-  background-color: rgba(50,50,50,0.5)
+  background-color: rgba(200,200,200,0.5)
   border-radius: 20px
   color: red
   &:hover
     cursor: pointer
-    background-color: darken(brown, 35%)
+    background-color: darken(rgba(100,100,100,0.5), 35%)
 
 .num-cols
   width: 40px
+
+#grid-wrapper
+  margin-left: 20px
+
+#grid-content
+  display: inline-block
+  background-color: rgba(200,200,200,0.5)
+  border-radius: 20px
+  padding: 10px
+
+#around-recordings
+  margin-top: 20px
+  margin-left: 20px
+  display: inline-block
+
+#recordings-index select
+  margin: none
+  background: black
+  height: 50px
+  &:hover
+    background: lighten(black, 20%)

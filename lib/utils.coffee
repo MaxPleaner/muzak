@@ -4,7 +4,7 @@ module.exports = Utils =
 
   context: new AudioContext()
 
-  sync_audio_state: (filenames) ->
+  sync_recording_state: (filenames) ->
     storage_ref_paths = filenames.map (filename) =>
       "users/#{UID}/audios/#{filename}"
     blob_promises = storage_ref_paths.map db.blob_from_ref_path
@@ -14,13 +14,32 @@ module.exports = Utils =
       Dom.recordings.empty()
       $audios = $ blob_urls.map (url, idx) =>
         @add_recorded_audio(url, filenames[idx])[0]
-      @setup_audio_selector($audios)
+      @setup_recording_selector($audios)
 
-  setup_audio_selector: ($audios) ->
-    # do this later ...
-    # debugger
-    # $audios.forEach (audio) =>
-    #   $audio = $ audio
+  setup_recording_selector: ($audios) ->
+    $index_container = $ """
+      <div class='recording-index-container'>
+        <select id="audio_selector"></select>
+        <button class='change-recording'>add</button>
+      </div>
+    """
+    $select = $index_container.find("select")
+    [0...$audios.length].forEach (idx) =>
+      filename = $audios.eq(idx).data("filename")
+      $option = $ """
+        <option value='#{filename}'>#{filename}</option>
+      """
+      $select.append $option
+    Dom.recordings_index.empty()
+    Dom.recordings_index.append($index_container)
+    $change_recording = $index_container.find(".change-recording")
+    $change_recording.on "click", =>
+      selected = $select.find("option:selected")[0]
+      selected ||= $select.find("option")[0]
+
+      filename = $(selected).val()
+      $(".audio[data-filename='#{filename}']").removeClass("hidden")
+    $change_recording.trigger "click"
 
 
   init_analyser: (callback) ->
@@ -40,20 +59,33 @@ module.exports = Utils =
 
   add_recorded_audio: (url, filename) ->
     $audio = $ """
-      <section class='audio'>
+      <section class='audio hidden'>
         <audio loop controls></audio>
         <section class='audio-options'>
           <a href='#{url}' download=''>download</a>
-          <button class='remove'>remove</button>
+          <button class='hide'>hide</button>
+          <button class='delete'>delete</button>
         </section>
       <section>
     """
-    $audio.find("audio").attr('src', url)
-    $audio.find("a").attr("download", filename)
+    
+    $hide_btn = $audio.find(".hide")
+    $remove_btn = $audio.find(".remove")
+    $audio_node = $audio.find "audio"
+    $download_link = $audio.find("a")
+
+    $audio.attr("data-filename", filename)
+    $audio_node.attr('src', url)
+    $download_link.attr("download", filename)
+
     Dom.recordings.append $audio
     source = @context.createMediaElementSource($audio.find("audio")[0])
     source.connect(@analyser)
-    $audio.find(".remove").on "click", ->
+    $hide_btn.on "click", ->
+      $audio.addClass("hidden")
+      $audio_node[0].pause()
+
+    $remove_btn.find(".remove").on "click", ->
       source.disconnect()
       $audio.remove()
       db.remove_audio(filename)

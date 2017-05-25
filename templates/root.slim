@@ -7,7 +7,10 @@
         br
         span sounds
     .title-buttons
-      button#add-audio onclick='Events.add_audio()' add oscillator
+      button#add-audio {
+        onclick='Events.add_audio()'
+        title='any number of oscillators can be added'
+      } add oscillator
       button#record {
         onclick='Events.record()'
         title='persisted in firebase!'
@@ -15,27 +18,37 @@
       button#show-analyser {
         onclick='Events.show_analyser()'
         title='uses equal temperament scale'
-      } analyser
+      } analyser (show)
+      button#show-grid{
+        onclick='Events.show_grid()'
+      } grid (show)
+      button#show-recordings{
+        onclick='Events.show_recordings()'
+      } recordings (show)
     br
 
     #credentials
     
     button#logout onclick="Events.logout()" logout
     br
-
-    #analyser.box.hidden
-      .analyser-metric.box
-        span#note ? 
-        span &nbsp note 
-      .analyser-metric.box
-        span#semitones ? 
-        span &nbsp semitones 
-      .analyser-metric.box
-        span#hz ? 
-        span &nbsp hz 
   
   br
-  #recordings
+
+  #analyser.box.hidden
+    .analyser-metric.box
+      span#note ? 
+      span &nbsp note 
+    .analyser-metric.box
+      span#semitones ? 
+      span &nbsp semitones 
+    .analyser-metric.box
+      span#hz ? 
+      span &nbsp hz 
+  br
+  
+  #around-recordings.hidden
+    #recordings-index
+    #recordings
 
   #audios
 
@@ -80,14 +93,14 @@
             td
               input name='gain' type='range' min='0.01' max='20' step='any' value='1' orient='vertical'
 
-  # button#show-grid onclick='Events.show_grid()' grid (show)
-  # #grid-wrapper
+  #grid-wrapper
 
 coffee:
 
   $ ->
 
     window.Dom = (->
+
       @root_content = $("#root-content")
       @audios = @root_content.find("#audios")
       @recordings = @root_content.find("#recordings")
@@ -97,9 +110,14 @@ coffee:
       @analyser_hz = @analyser.find("#hz")
       @analyser_semitones = @analyser.find("#semitones")
       @record_btn = @root_content.find("#record")
+      @recordings = @root_content.find("#recordings")
+      @recordings_index = @root_content.find("#recordings-index")
       @show_analyser_btn = @root_content.find("#show-analyser")
       @show_grid = @root_content.find("#show-grid")
       @grid_wrapper = @root_content.find("#grid-wrapper")
+      @show_recordings = @root_content.find("#show-recordings")
+      @around_recordings = @root_content.find("#around-recordings")
+
       this
     ).apply {}
 
@@ -113,6 +131,19 @@ coffee:
       Dom.analyser_semitones.text(semitones) unless isNaN semitones
 
     window.Events =
+
+      show_recordings: -> (->
+        if Dom.show_recordings.data("state") == "visible"
+          Dom.show_recordings
+          .data("state", "hidden")
+          .text("recordings (show)")
+        else
+          Dom.show_recordings
+          .data("state", "visible")
+          .text("recordings (hide)")
+        Dom.around_recordings.toggleClass("hidden")
+
+      ).apply Utils
 
       show_grid: -> (->
         $grid = Dom.grid_wrapper.find("#grid-content")
@@ -134,13 +165,13 @@ coffee:
       show_analyser: -> (->
         if Dom.show_analyser_btn.data("state") == "open"
           Dom.show_analyser_btn
-          .text("analyser")
+          .text("analyser (show)")
           .data("state", "closed")
           Dom.analyser.addClass "hidden"
           DomState.analyser_visible = false
         else
           Dom.show_analyser_btn
-          .text("analyer (close)")
+          .text("analyser (hide)")
           .data("state", "open")
           Dom.analyser.removeClass "hidden"
           DomState.analyser_visible = true

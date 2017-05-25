@@ -37,7 +37,7 @@ module.exports = FirebaseWrapper = class
         if is_hash obj
           filenames = Object.keys(obj).map (key) ->
             "#{key}.webm"
-          Utils.sync_audio_state(filenames)
+          Utils.sync_recording_state(filenames)
       else
         ref.off "value"
         return
