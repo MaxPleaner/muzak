@@ -80,22 +80,26 @@
             td
               input name='gain' type='range' min='0.01' max='20' step='any' value='1' orient='vertical'
 
-  #grid-wrapper   
+  button#show-grid onclick='Events.show_grid()' grid (show)
+  #grid-wrapper
 
 coffee:
 
   $ ->
 
     window.Dom = (->
-      @audios = $("#audios")
-      @recordings = $("#recordings")
-      @audio_template = $("#audio-template")
-      @analyser = $("#analyser")
+      @root_content = $("#root-content")
+      @audios = @root_content.find("#audios")
+      @recordings = @root_content.find("#recordings")
+      @audio_template = @root_content.find("#audio-template")
+      @analyser = @root_content.find("#analyser")
       @analyser_note = @analyser.find("#note")
       @analyser_hz = @analyser.find("#hz")
       @analyser_semitones = @analyser.find("#semitones")
-      @record_btn = $("#record")
-      @show_analyser_btn = $("#show-analyser")
+      @record_btn = @root_content.find("#record")
+      @show_analyser_btn = @root_content.find("#show-analyser")
+      @show_grid = @root_content.find("#show-grid")
+      @grid_wrapper = @root_content.find("#grid-wrapper")
       this
     ).apply {}
 
@@ -109,6 +113,19 @@ coffee:
       Dom.analyser_semitones.text(semitones) unless isNaN semitones
 
     window.Events =
+
+      show_grid: -> (->
+        $grid = Dom.grid_wrapper.find("#grid-content")
+        if Dom.show_grid.data("state") == "visible"
+          $grid.addClass("hidden")
+          Dom.show_grid.data("state", "hidden")
+          Dom.show_grid.text "grid (show)"
+        else
+          $grid.removeClass("hidden")
+          Dom.show_grid.data("state", "visible")
+          Dom.show_grid.text "grid (hide)"
+
+      ).apply Utils
 
       logout: -> (->
         firebase.auth().signOut()
