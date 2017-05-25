@@ -24,15 +24,15 @@ coffee:
 
   build_col = ->
     $ """
-    <li class='col'>O</li>
+    <li class='col'>
+      
+    </li>
     """
 
   set_num_cols = (num_cols, $rows, $row_wrapper, $ul) ->
     [0...num_cols].forEach (idx) ->
       $ul.append build_col()
     $rows.append $row_wrapper
-    debugger
-    $ul.find("li").draggable()
 
   build_row = ->
     $ """
@@ -68,3 +68,5 @@ coffee:
       num_cols = ~~$num_cols.val()
       $ul.empty()
       set_num_cols num_cols, $rows, $row_wrapper, $ul
+
+  $add_row.trigger "click"

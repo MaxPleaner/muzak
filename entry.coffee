@@ -1,7 +1,6 @@
 require './style.sass'
 
 $ = require 'jquery'
-require 'jquery-ui-bundle'
 
 firebase = require 'firebase/app'
 require 'firebase/auth'
