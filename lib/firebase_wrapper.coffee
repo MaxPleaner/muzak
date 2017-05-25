@@ -10,35 +10,66 @@ module.exports = FirebaseWrapper = class
     @firebase = firebase
     @app = @init_firebase_app()
     @realtime_db = firebase.database()
+    @storage = firebase.storage()
 
   ready: ->
     @listen_for_audios()
 
+  blob_from_ref_path: (ref_path) => new Promise (resolve, reject) =>
+    @storage.ref(ref_path).getDownloadURL()
+    .catch (e) => debugger
+    .then (url) =>
+      xhr = new XMLHttpRequest()
+      xhr.responseType = 'blob'
+      xhr.onload = (event) =>
+        resolve xhr.response
+      xhr.open "GET", url
+      xhr.send()
+
+  get_blob_url: (blob) ->
+    URL.createObjectURL blob    
+
   listen_for_audios: ->
     ref = @realtime_db.ref("users/#{UID}/audios")
     ref.on "value", (snapshot) =>
-      debugger
+      if UID
+        obj = snapshot.val()
+        if is_hash obj
+          filenames = Object.keys(obj).map (key) ->
+            "#{key}.webm"
+          Utils.sync_audio_state(filenames)
+      else
+        ref.off "value"
+        return
 
   init_firebase_app: ->
     @firebase.initializeApp @firebase_opts
 
   store_audio: (blob, filename) ->
-    ref = @root_ref().child("users/#{UID}/audios/#{filename}")
-    @store_audio_metadata filename, {status: "OK"}
+    ref = @build_audio_ref(filename)
     ref.put(blob)
-    .then (snapshot) =>
-      obj = snapshot.val()
-      if typeof(obj) == 'object'
-        filenames = Object.keys(obj).map (key) ->
-          "#{key}.webm"
-        Utils.sync_audio_state(filenames)
+    .then =>
+      @store_audio_metadata filename, {status: "OK"}
+
+  remove_audio: (filename) ->
+    ref = @build_audio_ref filename
+    ref.delete()
+    .then =>
+      @remove_audio_metadata filename
+
+  build_audio_ref: (filename) ->
+    @storage_root().child("users/#{UID}/audios/#{filename}")
 
   store_audio_metadata: (filename, data) ->
     file_key = filename.replace(".webm", "")
     @realtime_db.ref("users/#{UID}/audios/#{file_key}").set(data)
     
-  root_ref: ->
-    @_root_ref ||= firebase.storage().ref()
+  remove_audio_metadata: (filename) ->
+    file_key = filename.replace(".webm", "")
+    @realtime_db.ref("users/#{UID}/audios/#{file_key}").remove()
+
+  storage_root: ->
+    @_storage_root ||= @storage.ref()
 
   firebase_opts:
     apiKey: "AIzaSyCLJ-tKpxLAKcOKtcy0zVumYKQhwaB7FXQ"

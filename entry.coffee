@@ -18,8 +18,10 @@ $layout_content = $ require "html-loader!./templates/layout.slim"
 $root_content = $ require "html-loader!./templates/root.slim"
 $auth_content = $ require "html-loader!./templates/auth.slim"
 
+is_hash = require "./lib/is_hash.coffee"
+
 Object.assign window, {
-  $, firebase, sig2hz, NodeBuilder, Utils
+  $, firebase, sig2hz, NodeBuilder, Utils, is_hash
 }
 
 window.db = new FirebaseWrapper({firebase})
@@ -39,6 +41,7 @@ $ ->
       $credentials = $root_content.find "#credentials"
       $credentials.text "logged in as #{user.email}"
     else
+      window.UID = null
       $root_content.remove()
       $auth_wrapper = $ "#auth-wrapper"
       $auth_wrapper.append $auth_content

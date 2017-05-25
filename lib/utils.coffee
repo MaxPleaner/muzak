@@ -5,7 +5,15 @@ module.exports = Utils =
   context: new AudioContext()
 
   sync_audio_state: (filenames) ->
-    # TODO
+    storage_ref_paths = filenames.map (filename) =>
+      "users/#{UID}/audios/#{filename}"
+    blob_promises = storage_ref_paths.map db.blob_from_ref_path
+    Promise.all(blob_promises)
+    .then (blobs) =>
+      blob_urls = blobs.map db.get_blob_url
+      Dom.recordings.empty()
+      blob_urls.forEach (url, idx) =>
+        @add_recorded_audio url, filenames[idx]
 
   init_analyser: (callback) ->
     callback ||= ->
@@ -22,6 +30,23 @@ module.exports = Utils =
   random_string: (length) ->
     Math.random().toString(36).substring(length || 7);
 
+  add_recorded_audio: (url, filename) ->
+    $audio = $ """
+      <section class='audio'>
+        <audio loop controls></audio>
+        <br>
+        <section class='audio-options'>
+          <a href='#{url} download=''>download</a>
+          <button class='remove'>remove</button>
+        </section>
+      <section>
+    """
+    $audio.find("audio").attr('src', url)
+    Dom.recordings.append $audio
+    $audio.find(".remove").on "click", ->
+      $audio.remove()
+      db.remove_audio(filename)
+
   init_media_recorder: ->
 
     @media_recorder.onerror = (e) =>
@@ -34,23 +59,12 @@ module.exports = Utils =
     @media_recorder.onstop = (evt) =>
       blob = new Blob @media_recorder_chunks,
         'type': 'audio/ogg; codecs=opus'
-      url = URL.createObjectURL blob
+      url = db.get_blob_url(blob)
       filename = "#{@random_string()}.webm"
       db.store_audio(blob, filename)
-      $audio = $ """
-        <section class='audio'>
-          <audio loop controls></audio>
-          <br>
-          <section class='audio-options'>
-            <a href='#{url} download=''>download</a>
-            <button class='remove'>remove</button>
-          </section>
-        <section>
-      """
-      $audio.find("audio").attr('src', url)
-      Dom.recordings.append $audio
-      $audio.find(".remove").on "click", ->
-        $audio.remove()
+      @add_recorded_audio(url, filename)
+
+
 
   analyser_tick: (callback) ->
     -> (->
