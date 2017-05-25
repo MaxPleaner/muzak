@@ -12,7 +12,10 @@
         span sounds
     .title-buttons
       button#add-audio onclick='Events.add_audio()' add oscillator
-      button#record onclick='Events.record()' record
+      button#record {
+        onclick='Events.record()'
+        title='persisted in firebase!'
+      } record
       button#show-analyser {
         onclick='Events.show_analyser()'
         title='uses equal temperament scale'
