@@ -1,0 +1,68 @@
+#grid-content
+  
+  label for='default-length' default row length: 
+  input{
+    type='number'
+    id='default-row-length'
+    name='default-length'
+    min='1'
+    max='32'
+    step='1'
+    value='8'
+  }
+  br
+  button#add-row add row
+  br
+  #rows
+
+coffee:
+
+  $grid_content = $ "#grid-content"
+  $add_row = $grid_content.find "#add-row"
+  $rows = $grid_content.find "#rows"
+  $default_row_length = $grid_content.find "#default-row-length"
+
+  build_col = ->
+    $ """
+    <li class='col'>O</li>
+    """
+
+  set_num_cols = (num_cols, $rows, $row, $ul) ->
+    [0...num_cols].forEach (idx) ->
+      $ul.append build_col()
+    $rows.append $row
+
+  build_row = ->
+    $ """
+      <div class='row-wrapper'>
+        <ul class='row'></ul>
+        <button class='remove-row'>X</button>
+        <label for='num-cols'> beats: </label>
+        <input
+          type='number'
+          name='num-cols'
+          class='num-cols'
+        ></input>
+      </div>
+    """
+
+
+  $add_row.on "click", ->
+    $row = build_row()
+    $rows.append $row
+    $row_wrapper = $row.find ".row-wrapper"
+    $ul = $row_wrapper.find "ul"
+    $num_cols = $row_wrapper.find ".num-cols"
+    $remove_row = $row_wrapper.find ".remove-row"
+
+    num_cols = ~~$default_row_length.val()
+    $num_cols.val(num_cols)
+    set_num_cols(num_cols, $rows, $row, $ul)
+
+    $remove_row.on "click", ->
+      $row_wrapper.remove()
+
+    $num_cols.on "input", ->
+      num_cols = ~~$num_cols.val()
+      $rows.empty()
+      set_num_cols num_cols, $rows, $row, $ul

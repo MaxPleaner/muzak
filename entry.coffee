@@ -17,6 +17,7 @@ Utils = require './lib/utils.coffee'
 $layout_content = $ require "html-loader!./templates/layout.slim"
 $root_content = $ require "html-loader!./templates/root.slim"
 $auth_content = $ require "html-loader!./templates/auth.slim"
+$grid_content = $ require "html-loader!./templates/grid.slim"
 
 is_hash = require "./lib/is_hash.coffee"
 
@@ -38,6 +39,8 @@ $ ->
       $auth_content.remove()
       $root_wrapper = $ "#root-wrapper"
       $root_wrapper.append($root_content)
+      $grid_wrapper = $root_content.find "#grid-wrapper"
+      $grid_wrapper.append $grid_content
       $credentials = $root_content.find "#credentials"
       $credentials.text "logged in as #{user.email}"
     else

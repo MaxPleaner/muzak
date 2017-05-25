@@ -1,9 +1,5 @@
 #root-content
   
-  #credentials
-  button#logout onclick="Events.logout()" logout
-  br
-
   .title.major-component
     i.title-text
       .title-text-content
@@ -21,7 +17,12 @@
         title='uses equal temperament scale'
       } analyser
     br
+
+    #credentials
     
+    button#logout onclick="Events.logout()" logout
+    br
+
     #analyser.box.hidden
       .analyser-metric.box
         span#note ? 
@@ -32,8 +33,8 @@
       .analyser-metric.box
         span#hz ? 
         span &nbsp hz 
-
   
+  br
   #recordings
 
   #audios
@@ -79,7 +80,7 @@
             td
               input name='gain' type='range' min='0.01' max='20' step='any' value='1' orient='vertical'
 
-    
+  #grid-wrapper   
 
 coffee:
 
