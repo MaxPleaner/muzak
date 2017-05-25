@@ -1,6 +1,7 @@
 require './style.sass'
 
 $ = require 'jquery'
+require 'jquery-ui-bundle'
 
 firebase = require 'firebase/app'
 require 'firebase/auth'
@@ -14,6 +15,7 @@ sig2hz = require 'signaltohertz'
 NodeBuilder = require './lib/node_builder.coffee'
 Utils = require './lib/utils.coffee'
 
+
 $layout_content = $ require "html-loader!./templates/layout.slim"
 $root_content = $ require "html-loader!./templates/root.slim"
 $auth_content = $ require "html-loader!./templates/auth.slim"
@@ -22,7 +24,7 @@ $grid_content = $ require "html-loader!./templates/grid.slim"
 is_hash = require "./lib/is_hash.coffee"
 
 Object.assign window, {
-  $, firebase, sig2hz, NodeBuilder, Utils, is_hash
+  $, firebase, sig2hz, NodeBuilder, Utils, is_hash,
 }
 
 window.db = new FirebaseWrapper({firebase})

@@ -31,6 +31,8 @@ coffee:
     [0...num_cols].forEach (idx) ->
       $ul.append build_col()
     $rows.append $row_wrapper
+    debugger
+    $ul.find("li").draggable()
 
   build_row = ->
     $ """
@@ -47,8 +49,8 @@ coffee:
       <br>
     """
 
-
   $add_row.on "click", ->
+
     $row_wrapper = build_row()
     $rows.append $row_wrapper
     $ul = $row_wrapper.find "ul"
