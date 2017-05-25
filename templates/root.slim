@@ -216,6 +216,8 @@ coffee:
           @create_nodes(id)
           $play_btn.addClass("hidden")
           $stop_btn.removeClass("hidden")
+          sliders.$oscillator.trigger "input"
+          sliders.$gain.trigger "input"
 
         $stop_btn.on "click", =>
           @stop_nodes(id)
@@ -258,13 +260,10 @@ coffee:
         $gain_value.on "input", (e) =>
           gain = sliders.$gain
           gain.val $gain_value.val()
-          gain.trigger "input"
-
-
-          
+          gain.trigger "input" 
 
       ).apply Utils
-      
+
     Dom.show_grid.trigger "click"
 
 
