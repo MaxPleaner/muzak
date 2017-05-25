@@ -43,7 +43,10 @@ module.exports = Utils =
     """
     $audio.find("audio").attr('src', url)
     Dom.recordings.append $audio
+    source = @context.createMediaElementSource($audio.find("audio")[0])
+    source.connect(@analyser)
     $audio.find(".remove").on "click", ->
+      source.disconnect()
       $audio.remove()
       db.remove_audio(filename)
 
