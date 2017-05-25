@@ -27,10 +27,10 @@ coffee:
     <li class='col'>O</li>
     """
 
-  set_num_cols = (num_cols, $rows, $row, $ul) ->
+  set_num_cols = (num_cols, $rows, $row_wrapper, $ul) ->
     [0...num_cols].forEach (idx) ->
       $ul.append build_col()
-    $rows.append $row
+    $rows.append $row_wrapper
 
   build_row = ->
     $ """
@@ -48,21 +48,20 @@ coffee:
 
 
   $add_row.on "click", ->
-    $row = build_row()
-    $rows.append $row
-    $row_wrapper = $row.find ".row-wrapper"
+    $row_wrapper = build_row()
+    $rows.append $row_wrapper
     $ul = $row_wrapper.find "ul"
     $num_cols = $row_wrapper.find ".num-cols"
     $remove_row = $row_wrapper.find ".remove-row"
 
     num_cols = ~~$default_row_length.val()
     $num_cols.val(num_cols)
-    set_num_cols(num_cols, $rows, $row, $ul)
+    set_num_cols(num_cols, $rows, $row_wrapper, $ul)
 
     $remove_row.on "click", ->
       $row_wrapper.remove()
 
     $num_cols.on "input", ->
       num_cols = ~~$num_cols.val()
-      $rows.empty()
-      set_num_cols num_cols, $rows, $row, $ul
+      $ul.empty()
+      set_num_cols num_cols, $rows, $row_wrapper, $ul
