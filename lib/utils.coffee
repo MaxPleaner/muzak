@@ -12,8 +12,16 @@ module.exports = Utils =
     .then (blobs) =>
       blob_urls = blobs.map db.get_blob_url
       Dom.recordings.empty()
-      blob_urls.forEach (url, idx) =>
-        @add_recorded_audio url, filenames[idx]
+      $audios = $ blob_urls.map (url, idx) =>
+        @add_recorded_audio(url, filenames[idx])[0]
+      @setup_audio_selector($audios)
+
+  setup_audio_selector: ($audios) ->
+    # do this later ...
+    # debugger
+    # $audios.forEach (audio) =>
+    #   $audio = $ audio
+
 
   init_analyser: (callback) ->
     callback ||= ->
@@ -34,14 +42,14 @@ module.exports = Utils =
     $audio = $ """
       <section class='audio'>
         <audio loop controls></audio>
-        <br>
         <section class='audio-options'>
-          <a href='#{url} download=''>download</a>
+          <a href='#{url}' download=''>download</a>
           <button class='remove'>remove</button>
         </section>
       <section>
     """
     $audio.find("audio").attr('src', url)
+    $audio.find("a").attr("download", filename)
     Dom.recordings.append $audio
     source = @context.createMediaElementSource($audio.find("audio")[0])
     source.connect(@analyser)
@@ -49,6 +57,7 @@ module.exports = Utils =
       source.disconnect()
       $audio.remove()
       db.remove_audio(filename)
+    $audio
 
   init_media_recorder: ->
 
@@ -65,9 +74,6 @@ module.exports = Utils =
       url = db.get_blob_url(blob)
       filename = "#{@random_string()}.webm"
       db.store_audio(blob, filename)
-      @add_recorded_audio(url, filename)
-
-
 
   analyser_tick: (callback) ->
     -> (->
