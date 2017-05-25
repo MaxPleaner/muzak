@@ -37,7 +37,9 @@ module.exports = FirebaseWrapper = class
         if is_hash obj
           filenames = Object.keys(obj).map (key) ->
             "#{key}.webm"
-          Utils.sync_recording_state(filenames)
+          common_names = Object.values(obj).map (obj) ->
+            obj.common_name
+          Utils.sync_recording_state(filenames, common_names)
       else
         ref.off "value"
         return
@@ -49,7 +51,7 @@ module.exports = FirebaseWrapper = class
     ref = @build_audio_ref(filename)
     ref.put(blob)
     .then =>
-      @store_audio_metadata filename, {status: "OK"}
+      @store_audio_metadata filename, {common_name: filename}
 
   remove_audio: (filename) ->
     ref = @build_audio_ref filename

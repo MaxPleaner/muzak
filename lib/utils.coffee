@@ -4,7 +4,7 @@ module.exports = Utils =
 
   context: new AudioContext()
 
-  sync_recording_state: (filenames) ->
+  sync_recording_state: (filenames, common_names) ->
     storage_ref_paths = filenames.map (filename) =>
       "users/#{UID}/audios/#{filename}"
     blob_promises = storage_ref_paths.map db.blob_from_ref_path
@@ -13,10 +13,10 @@ module.exports = Utils =
       blob_urls = blobs.map db.get_blob_url
       Dom.recordings.empty()
       $audios = $ blob_urls.map (url, idx) =>
-        @add_recorded_audio(url, filenames[idx])[0]
-      @setup_recording_selector($audios)
+        @add_recorded_audio(url, filenames[idx], common_names[idx])[0]
+      @setup_recording_selector($audios, common_names)
 
-  setup_recording_selector: ($audios) ->
+  setup_recording_selector: ($audios, common_names) ->
     $index_container = $ """
       <div class='recording-index-container'>
         <select id="audio_selector"></select>
@@ -27,7 +27,7 @@ module.exports = Utils =
     [0...$audios.length].forEach (idx) =>
       filename = $audios.eq(idx).data("filename")
       $option = $ """
-        <option value='#{filename}'>#{filename}</option>
+        <option value='#{filename}'>#{common_names[idx]}</option>
       """
       $select.append $option
     Dom.recordings_index.empty()
@@ -57,7 +57,7 @@ module.exports = Utils =
   random_string: (length) ->
     Math.random().toString(36).substring(length || 7);
 
-  add_recorded_audio: (url, filename) ->
+  add_recorded_audio: (url, filename, common_name) ->
     $audio = $ """
       <section class='audio hidden'>
         <audio loop controls></audio>
@@ -65,6 +65,8 @@ module.exports = Utils =
           <a href='#{url}' download=''>download</a>
           <button class='hide'>hide</button>
           <button class='delete'>delete</button>
+          <input type='text' class='editable-filename'></input>
+          <button class='editable-filename-submit'>edit filename</button>
         </section>
       <section>
     """
@@ -73,14 +75,22 @@ module.exports = Utils =
     $remove_btn = $audio.find(".remove")
     $audio_node = $audio.find "audio"
     $download_link = $audio.find("a")
+    $editable_filename = $audio.find ".editable-filename"
+    $editable_filename_submit = $audio.find ".editable-filename-submit"
 
     $audio.attr("data-filename", filename)
     $audio_node.attr('src', url)
     $download_link.attr("download", filename)
+    $editable_filename.val common_name
 
     Dom.recordings.append $audio
     source = @context.createMediaElementSource($audio.find("audio")[0])
     source.connect(@analyser)
+
+    $editable_filename_submit.on "click", ->
+      val = $editable_filename.val()
+      db.store_audio_metadata(filename, {common_name: val})
+
     $hide_btn.on "click", ->
       $audio.addClass("hidden")
       $audio_node[0].pause()
