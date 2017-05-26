@@ -1,3 +1,12 @@
+.clearfix
+  clear: both
+
+.inline
+  display: inline-block
+
+.float-left
+  float: left
+
 body, html
 
   width: 100%
@@ -202,14 +211,22 @@ input[type='range']
 
 .col
   display: inline-block
+  // width: 10px
+  // height: 10px
+  // float: left
   border: 1px solid white
   margin: 0 5px
   padding: 10px
+  list-style: none
   &:hover
     background: grey
     cursor: pointer
 
-  list-style: none
+.col.has-content
+  color: blue
+  background: red !important
+  border: 1px solid purple
+
 
 .row-wrapper
   display: block

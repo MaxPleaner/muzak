@@ -35,47 +35,71 @@ coffee:
 
   show_modal = ($col) ->
     $opts = $("#audio-selector").clone()
+    $.each $opts.find("option:selected"), (idx, node) ->
+      node.removeAttribute "selected"
+    $opts.prepend $ """
+      <option disabled selected value> -- select an option -- </option>
+    """
+    $
     $modal = $ """
       <div class='col-opts-modal'>
       </div>
     """
     $modal.append $opts
     $opts.on "change", ->
-      filename = $opts.find("option:selected").val()
+      $selected = $opts.find("option:selected")
+      filename = $selected.val()
+      common_name = $selected.text()
       row_idx = ~~$col.data("row-idx")
       col_idx = ~~$col.data("idx")
       state.grid_matrix[row_idx] ||= []
       row = state.grid_matrix[row_idx]
-      row[col_idx] = [start: filename]
-      $col.find(".col-text").text filename
-      $opts.remove()
+      row[col_idx] = start: filename
+      $col.addClass("has-content")
+      $col.attr("title", common_name)
+      $modal.remove()
     $modal
 
-  add_col_events = ($col) ->
+  add_col_events = ($col, row_idx, col_idx) ->
+    $text = $col.find(".col-text")
     $col.on "click", ->
-      $open_modal = show_modal($col)
-      $col.prepend $open_modal
-      $open_modal.find(".remove").on "click", ->
-        $open_modal.remove()
+      if $col.hasClass("has-content")
+        $col.attr("title", "")
+        $col.text ""
+        $col.removeClass("has-content")
+        state.grid_matrix[row_idx][col_idx] = null
+      else
+        return if $col.find(".col-opts-modal").length > 0
+        $open_modal = show_modal($col)
+        $col.prepend $open_modal
+    $col.on "mouseenter", ->
+      if $col.hasClass("has-content")
+        $text.text "x"
+      true
+    $col.on "mouseleave", ->
+      $text.text ""
+      true
+
 
   set_num_cols = (row_idx, num_cols, $rows, $row_wrapper, $ul) ->
     [0...num_cols].forEach (col_idx) ->
       $col = build_col(row_idx, col_idx)
       $ul.append $col
-      add_col_events($col)
+      add_col_events($col, row_idx, col_idx)
     $rows.append $row_wrapper
 
   build_row = (idx) ->
     $ """
       <div class='row-wrapper'>
         <ul class='row' data-idx='#{idx}' ></ul>
-        <button class='remove-row'>X</button>
-        <label for='num-cols'> beats: </label>
-        <input
-          type='number'
-          name='num-cols'
-          class='num-cols'
-        ></input>
+          <button class='remove-row'>X</button>
+          <label for='num-cols'> beats: </label>
+          <input
+            type='number'
+            name='num-cols'
+            class='num-cols'
+          ></input>
+        </div>
       </div>
     """
 
