@@ -13,6 +13,10 @@
   br
   button#add-row add row
   br
+
+  #grid-cell-modal.hidden
+    select#grid-cell-options
+
   #rows
 
 coffee:
@@ -22,22 +26,49 @@ coffee:
   $rows = $grid_content.find "#rows"
   $default_row_length = $grid_content.find "#default-row-length"
 
-  build_col = ->
+  build_col = (row_idx, col_idx) ->
     $ """
-    <li class='col'>
-      
-    </li>
+      <li data-row-idx='#{row_idx}' data-idx='#{col_idx}' class='col'>
+        <span class='col-text'></span>
+      </li>
     """
 
-  set_num_cols = (num_cols, $rows, $row_wrapper, $ul) ->
-    [0...num_cols].forEach (idx) ->
-      $ul.append build_col()
+  show_modal = ($col) ->
+    $opts = $("#audio-selector").clone()
+    $modal = $ """
+      <div class='col-opts-modal'>
+      </div>
+    """
+    $modal.append $opts
+    $opts.on "change", ->
+      filename = $opts.find("option:selected").val()
+      row_idx = ~~$col.data("row-idx")
+      col_idx = ~~$col.data("idx")
+      state.grid_matrix[row_idx] ||= []
+      row = state.grid_matrix[row_idx]
+      row[col_idx] = [start: filename]
+      $col.find(".col-text").text filename
+      $opts.remove()
+    $modal
+
+  add_col_events = ($col) ->
+    $col.on "click", ->
+      $open_modal = show_modal($col)
+      $col.prepend $open_modal
+      $open_modal.find(".remove").on "click", ->
+        $open_modal.remove()
+
+  set_num_cols = (row_idx, num_cols, $rows, $row_wrapper, $ul) ->
+    [0...num_cols].forEach (col_idx) ->
+      $col = build_col(row_idx, col_idx)
+      $ul.append $col
+      add_col_events($col)
     $rows.append $row_wrapper
 
-  build_row = ->
+  build_row = (idx) ->
     $ """
       <div class='row-wrapper'>
-        <ul class='row'></ul>
+        <ul class='row' data-idx='#{idx}' ></ul>
         <button class='remove-row'>X</button>
         <label for='num-cols'> beats: </label>
         <input
@@ -46,27 +77,24 @@ coffee:
           class='num-cols'
         ></input>
       </div>
-      <br>
     """
 
   $add_row.on "click", ->
-
-    $row_wrapper = build_row()
+    $row_wrapper = build_row(state.last_row_idx += 1)
     $rows.append $row_wrapper
     $ul = $row_wrapper.find "ul"
     $num_cols = $row_wrapper.find ".num-cols"
     $remove_row = $row_wrapper.find ".remove-row"
 
     num_cols = ~~$default_row_length.val()
-    $num_cols.val(num_cols)
-    set_num_cols(num_cols, $rows, $row_wrapper, $ul)
+    set_num_cols(state.last_row_idx, num_cols, $rows, $row_wrapper, $ul)
 
+    $num_cols.val(num_cols)
     $remove_row.on "click", ->
       $row_wrapper.remove()
 
     $num_cols.on "input", ->
       num_cols = ~~$num_cols.val()
       $ul.empty()
-      set_num_cols num_cols, $rows, $row_wrapper, $ul
+      set_num_cols state.last_row_idx, num_cols, $rows, $row_wrapper, $ul
 
-  $add_row.trigger "click"

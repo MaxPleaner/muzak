@@ -19,7 +19,7 @@ module.exports = Utils =
   setup_recording_selector: ($audios, common_names) ->
     $index_container = $ """
       <div class='recording-index-container'>
-        <select id="audio_selector"></select>
+        <select id="audio-selector"></select>
         <button class='change-recording'>add</button>
       </div>
     """

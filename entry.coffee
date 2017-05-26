@@ -14,7 +14,6 @@ sig2hz = require 'signaltohertz'
 NodeBuilder = require './lib/node_builder.coffee'
 Utils = require './lib/utils.coffee'
 
-
 $layout_content = $ require "html-loader!./templates/layout.slim"
 $root_content = $ require "html-loader!./templates/root.slim"
 $auth_content = $ require "html-loader!./templates/auth.slim"
@@ -22,11 +21,16 @@ $grid_content = $ require "html-loader!./templates/grid.slim"
 
 is_hash = require "./lib/is_hash.coffee"
 
+db = new FirebaseWrapper({firebase})
+
+state =
+  grid_matrix: []
+  last_row_idx: -1
+
 Object.assign window, {
   $, firebase, sig2hz, NodeBuilder, Utils, is_hash,
+  db, state
 }
-
-window.db = new FirebaseWrapper({firebase})
 
 $ ->
 
