@@ -172,6 +172,9 @@ coffee:
           null
         when "note"
           aud = grid_state.audios[col.filename]
+          aud ||= add_grid_audio_ref(
+            $(".audios audio[filename='#{col.filename}']")[0]
+          )
           aud.currentTime = 0
           aud.play()
 
@@ -192,13 +195,19 @@ coffee:
       else
         requestAnimationFrame grid_tick(ticks_gap, idx)
 
+  add_grid_audio_ref = (audio) ->
+    audio_clone = $(audio).clone()[0]
+    grid_state.audios[$(audio).data("filename")] = audio_clone
+    audio_clone.loop = false
+    audio_clone
+
   play_grid = ->
     return true if state.grid_matrix.length < 1
     bpm = parseFloat($bpm.val())
     console.log bpm, "bpm"
     division = parseFloat($division.find("option:selected").val() || 120)
     console.log division, "division"
-    seconds_gap = (15.0 / 1.0) / (bpm / division)
+    seconds_gap = 240 / (bpm * division)
     console.log seconds_gap, "seconds gap"
     ticks_gap = seconds_gap * 60.0
     console.log ticks_gap, "ticks gap"
@@ -209,12 +218,8 @@ coffee:
       $.each $(row_node).find(".col"), (col_idx, col) ->
         row.push $(col)
 
-
-
     $.each $audios, (idx, audio) ->
-      audio_clone = $(audio).clone()[0]
-      grid_state.audios[$(audio).data("filename")] = audio_clone
-      audio_clone.loop = false
+      add_grid_audio_ref(audio)
     requestAnimationFrame(grid_tick ticks_gap, 0)
 
     # $($($(".row")[0]).find(".col")[0]).find(".grid-cell-audio audio")[0].pause()
