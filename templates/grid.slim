@@ -109,7 +109,7 @@ coffee:
     $col.on "mouseenter", ->
       if $col.hasClass("has-content")
         $text.text "x"
-      true
+       true
     $col.on "mouseleave", ->
       $text.text ""
       true
@@ -143,22 +143,38 @@ coffee:
   grid_state =
     col: 0
     audios: {}
+    $containers: []
+    $last_playing_container: null
     stopping: false
 
-  play_next_note = (idx) ->
+  play_next_note = ->
+
     console.log "hit"
-    state.grid_matrix.forEach (row) ->
+
+    state.grid_matrix.forEach (row, row_idx) ->
+
       col = row[grid_state.col]
-      if col
-        switch col.cmd
-          when "rest"
-            null
-          when "note"
-            aud = grid_state.audios[col.filename]
-            aud.currentTime = 0
-            aud.play()
-      else
-        grid_state.col = -1
+
+      if !col
+        grid_state.col = 0
+        col = row[0]
+
+      $last_container = grid_state.$last_playing_container
+      if $last_container
+        $last_container.removeClass("playing")
+
+      $container = grid_state.$containers[row_idx][grid_state.col]
+      grid_state.$last_playing_container = $container
+      $container.addClass("playing")
+
+      switch col.cmd
+        when "rest"
+          null
+        when "note"
+          aud = grid_state.audios[col.filename]
+          aud.currentTime = 0
+          aud.play()
+
     grid_state.col += 1
 
   grid_tick = (ticks_gap, idx) ->
@@ -187,6 +203,14 @@ coffee:
     ticks_gap = seconds_gap * 60.0
     console.log ticks_gap, "ticks gap"
     $audios = $(".audio audio")
+    $.each $(".row"), (row_idx, row_node) ->
+      grid_state.$containers[row_idx] ||= []
+      row = grid_state.$containers[row_idx]
+      $.each $(row_node).find(".col"), (col_idx, col) ->
+        row.push $(col)
+
+
+
     $.each $audios, (idx, audio) ->
       audio_clone = $(audio).clone()[0]
       grid_state.audios[$(audio).data("filename")] = audio_clone
