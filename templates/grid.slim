@@ -11,6 +11,30 @@
     value='4'
   }
   br
+  label for='bpm' bpm:
+  input{
+    type='number'
+    id='bpm'
+    name='bpm'
+    min='1'
+    max='500'
+    step='1'
+    value='120'
+  }
+  br
+  label for='division' division:
+  select id='division' name='division'
+    option value='1' whole notes
+    option value='2' half notes
+    option value='3' quarter note triplets
+    option selected='selected' value='4' quarter notes
+    option value='6' eighth note triplets
+    option value='8' eighth notes
+    option value='12' sixteenth note triplets
+    option value='16' sixteenth notes 
+  br
+  button#play-grid play
+  br
   button#add-row add row
   br
 
@@ -23,6 +47,7 @@ coffee:
 
   $grid_content = $ "#grid-content"
   $add_row = $grid_content.find "#add-row"
+  $play_grid = $grid_content.find "#play-grid"
   $rows = $grid_content.find "#rows"
   $default_row_length = $grid_content.find "#default-row-length"
 
@@ -122,3 +147,10 @@ coffee:
       $ul.empty()
       set_num_cols state.last_row_idx, num_cols, $rows, $row_wrapper, $ul
 
+  $play_grid.on "click", ->
+    if $play_grid.data("state") == "playing"
+      $play_grid.text "stop"
+      $play_grid.data("state", "stopped")
+    else
+      $play_grid.text "play"
+      $play_grid.data("state", "playing")
