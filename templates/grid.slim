@@ -146,6 +146,7 @@ coffee:
     stopping: false
 
   play_next_note = (idx) ->
+    console.log "hit"
     state.grid_matrix.forEach (row) ->
       col = row[grid_state.col]
       if col
@@ -154,6 +155,7 @@ coffee:
             null
           when "note"
             aud = grid_state.audios[col.filename]
+            aud.currentTime = 0
             aud.play()
       else
         grid_state.col = -1
@@ -161,9 +163,11 @@ coffee:
 
   grid_tick = (ticks_gap, idx) ->
     ->
-      play_next_note(idx) if [ticks_gap, 0].includes(idx)
+      console.log "idx"
+      if [ticks_gap, 0].includes(idx)
+        play_next_note(idx) 
       idx += 1
-      (idx = 1) if idx > (ticks_gap + 1)
+      (idx = 0) if idx >= (ticks_gap * 2)
       if grid_state.stopping
         Object.assign grid_state,
           stopping: false
