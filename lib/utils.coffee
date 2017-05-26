@@ -64,7 +64,7 @@ module.exports = Utils =
         <section class='audio-options'>
           <a href='#{url}' download=''>download</a>
           <button class='hide'>hide</button>
-          <button class='delete'>delete</button>
+          <button class='remove'>delete</button>
           <input type='text' class='editable-filename'></input>
           <button class='editable-filename-submit'>edit filename</button>
         </section>
@@ -80,6 +80,7 @@ module.exports = Utils =
 
     $audio.attr("data-filename", filename)
     $audio_node.attr('src', url)
+    $audio_node.data("filename", filename)
     $download_link.attr("download", filename)
     $editable_filename.val common_name
 
@@ -95,10 +96,11 @@ module.exports = Utils =
       $audio.addClass("hidden")
       $audio_node[0].pause()
 
-    $remove_btn.find(".remove").on "click", ->
+    $remove_btn.on "click", ->
       source.disconnect()
       $audio.remove()
       db.remove_audio(filename)
+      Dom.recordings_index.find("[value='#{filename}']").remove()
     $audio
 
   init_media_recorder: ->

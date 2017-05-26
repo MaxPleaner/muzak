@@ -49,27 +49,32 @@ coffee:
   $add_row = $grid_content.find "#add-row"
   $play_grid = $grid_content.find "#play-grid"
   $rows = $grid_content.find "#rows"
+  $bpm = $grid_content.find "#bpm"
+  $division = $grid_content.find "#division"
   $default_row_length = $grid_content.find "#default-row-length"
 
   build_col = (row_idx, col_idx) ->
     $ """
       <li data-row-idx='#{row_idx}' data-idx='#{col_idx}' class='col'>
         <span class='col-text'></span>
+        <section class='hidden grid-cell-audio'>
+        </section>
       </li>
     """
 
   show_modal = ($col) ->
     $opts = $("#audio-selector").clone()
+    $grid_cell_audio = $col.find(".grid-cell-audio")
+    $modal = $ """
+      <div class='col-opts-modal'>
+      </div>
+    """
     $.each $opts.find("option:selected"), (idx, node) ->
       node.removeAttribute "selected"
     $opts.prepend $ """
       <option disabled selected value> -- select an option -- </option>
     """
     $
-    $modal = $ """
-      <div class='col-opts-modal'>
-      </div>
-    """
     $modal.append $opts
     $opts.on "change", ->
       $selected = $opts.find("option:selected")
@@ -79,9 +84,12 @@ coffee:
       col_idx = ~~$col.data("idx")
       state.grid_matrix[row_idx] ||= []
       row = state.grid_matrix[row_idx]
-      row[col_idx] = start: filename
+      row[col_idx] = { cmd: "note", filename }
       $col.addClass("has-content")
       $col.attr("title", common_name)
+      $audio = $(".audio[data-filename='#{filename}'] audio").clone()
+      $audio.addClass("hidden")
+      $grid_cell_audio.empty().append $audio
       $modal.remove()
     $modal
 
@@ -93,6 +101,7 @@ coffee:
         $col.text ""
         $col.removeClass("has-content")
         state.grid_matrix[row_idx][col_idx] = null
+        $col.find(".grid-cell-audio").empty()
       else
         return if $col.find(".col-opts-modal").length > 0
         $open_modal = show_modal($col)
@@ -105,8 +114,11 @@ coffee:
       $text.text ""
       true
 
-
   set_num_cols = (row_idx, num_cols, $rows, $row_wrapper, $ul) ->
+    state.grid_matrix[row_idx] = ((array) ->
+      [0...num_cols].forEach -> array.push {cmd: "rest"}
+      array
+    )([])
     [0...num_cols].forEach (col_idx) ->
       $col = build_col(row_idx, col_idx)
       $ul.append $col
@@ -127,6 +139,60 @@ coffee:
         </div>
       </div>
     """
+
+  grid_state =
+    col: 0
+    audios: {}
+    stopping: false
+
+  play_next_note = (idx) ->
+    state.grid_matrix.forEach (row) ->
+      col = row[grid_state.col]
+      if col
+        switch col.cmd
+          when "rest"
+            null
+          when "note"
+            aud = grid_state.audios[col.filename]
+            aud.play()
+      else
+        grid_state.col = -1
+    grid_state.col += 1
+
+  grid_tick = (ticks_gap, idx) ->
+    ->
+      play_next_note(idx) if [ticks_gap, 0].includes(idx)
+      idx += 1
+      (idx = 1) if idx > (ticks_gap + 1)
+      if grid_state.stopping
+        Object.assign grid_state,
+          stopping: false
+          row: 0
+          col: 0
+      else
+        requestAnimationFrame grid_tick(ticks_gap, idx)
+
+  play_grid = ->
+    return true if state.grid_matrix.length < 1
+    bpm = parseFloat($bpm.val())
+    console.log bpm, "bpm"
+    division = parseFloat($division.find("option:selected").val() || 120)
+    console.log division, "division"
+    seconds_gap = (15.0 / 1.0) / (bpm / division)
+    console.log seconds_gap, "seconds gap"
+    ticks_gap = seconds_gap * 60.0
+    console.log ticks_gap, "ticks gap"
+    $audios = $(".audio audio")
+    $.each $audios, (idx, audio) ->
+      audio_clone = $(audio).clone()[0]
+      grid_state.audios[$(audio).data("filename")] = audio_clone
+      audio_clone.loop = false
+    requestAnimationFrame(grid_tick ticks_gap, 0)
+
+    # $($($(".row")[0]).find(".col")[0]).find(".grid-cell-audio audio")[0].pause()
+
+  stop_grid = ->
+    grid_state.stopping = true
 
   $add_row.on "click", ->
     $row_wrapper = build_row(state.last_row_idx += 1)
@@ -149,8 +215,10 @@ coffee:
 
   $play_grid.on "click", ->
     if $play_grid.data("state") == "playing"
-      $play_grid.text "stop"
-      $play_grid.data("state", "stopped")
-    else
       $play_grid.text "play"
+      $play_grid.data("state", "stopped")
+      stop_grid()
+    else
+      $play_grid.text "stop"
       $play_grid.data("state", "playing")
+      play_grid()
