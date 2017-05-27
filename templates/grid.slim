@@ -141,30 +141,46 @@ coffee:
     """
 
   grid_state =
-    col: 0
+    col_idxs: {}
     audios: {}
     $containers: []
-    $last_playing_container: null
     stopping: false
 
   play_next_note = ->
 
     console.log "hit"
 
+    missing_rows = []
+
     state.grid_matrix.forEach (row, row_idx) ->
 
-      col = row[grid_state.col]
+      grid_state.col_idxs[row_idx] ||= 0
+      col_idx = grid_state.col_idxs[row_idx]
+
+      col = row[col_idx]
 
       if !col
-        grid_state.col = 0
-        col = row[0]
+        col_idx = 0
+        grid_state.col_idxs[row_idx] = col_idx
+        col = row[col_idx]
 
-      $last_container = grid_state.$last_playing_container
-      if $last_container
-        $last_container.removeClass("playing")
+      containers_row = grid_state.$containers[row_idx]
+      $last_col = if col_idx == 0
+        containers_row[(containers_row.length) - 1]
+      else
+        containers_row[col_idx - 1]
 
-      $container = grid_state.$containers[row_idx][grid_state.col]
-      grid_state.$last_playing_container = $container
+      $last_col.removeClass("playing")
+
+      # if $last_container
+      #   $last_container.removeClass("playing")
+
+      unless grid_state.$containers[row_idx]
+        missing_rows << row_idx
+        return
+
+      $container = grid_state.$containers[row_idx][col_idx]
+      debugger unless $container
       $container.addClass("playing")
 
       switch col.cmd
@@ -178,7 +194,10 @@ coffee:
           aud.currentTime = 0
           aud.play()
 
-    grid_state.col += 1
+      grid_state.col_idxs[row_idx] += 1
+
+    missing_rows.sort().reverse().forEach (idx) ->
+      state.grid_matrix.splice(idx, 1)
 
   grid_tick = (ticks_gap, idx) ->
     ->
@@ -222,8 +241,6 @@ coffee:
       add_grid_audio_ref(audio)
     requestAnimationFrame(grid_tick ticks_gap, 0)
 
-    # $($($(".row")[0]).find(".col")[0]).find(".grid-cell-audio audio")[0].pause()
-
   stop_grid = ->
     grid_state.stopping = true
 
@@ -235,16 +252,19 @@ coffee:
     $remove_row = $row_wrapper.find ".remove-row"
 
     num_cols = ~~$default_row_length.val()
-    set_num_cols(state.last_row_idx, num_cols, $rows, $row_wrapper, $ul)
-
+    row_idx = state.last_row_idx
+    set_num_cols(row_idx, num_cols, $rows, $row_wrapper, $ul)
     $num_cols.val(num_cols)
     $remove_row.on "click", ->
+      state.grid_matrix.splice(row_idx, 1)
       $row_wrapper.remove()
 
-    $num_cols.on "input", ->
+    $num_cols.on "input", (e) ->
+      $col = $(e.currentTarget)
+      row_idx = $col.parent().data("idx")
       num_cols = ~~$num_cols.val()
       $ul.empty()
-      set_num_cols state.last_row_idx, num_cols, $rows, $row_wrapper, $ul
+      set_num_cols row_idx, num_cols, $rows, $row_wrapper, $ul
 
   $play_grid.on "click", ->
     if $play_grid.data("state") == "playing"
