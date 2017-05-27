@@ -53,3 +53,9 @@ $ ->
       $root_content.remove()
       $auth_wrapper = $ "#auth-wrapper"
       $auth_wrapper.append $auth_content
+
+
+  # Global keyboard shortcuts
+  $(document).on "keyup", (e) ->
+    if e.which == 82 # the 'r' key
+      $("#record").trigger "click"

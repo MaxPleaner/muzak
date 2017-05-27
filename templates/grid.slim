@@ -191,6 +191,7 @@ coffee:
           aud ||= add_grid_audio_ref(
             $(".audios audio[filename='#{col.filename}']")[0]
           )
+          aud.pause()
           aud.currentTime = 0
           aud.play()
 
