@@ -82,7 +82,6 @@ coffee:
       common_name = $selected.text()
       row_idx = ~~$col.data("row-idx")
       col_idx = ~~$col.data("idx")
-      state.grid_matrix[row_idx] ||= []
       row = state.grid_matrix[row_idx]
       row[col_idx] = { cmd: "note", filename }
       $col.addClass("has-content")
@@ -119,10 +118,12 @@ coffee:
       [0...num_cols].forEach -> array.push {cmd: "rest"}
       array
     )([])
+    grid_state.$containers[row_idx] = []
     [0...num_cols].forEach (col_idx) ->
       $col = build_col(row_idx, col_idx)
       $ul.append $col
       add_col_events($col, row_idx, col_idx)
+      grid_state.$containers[row_idx].push $col
     $rows.append $row_wrapper
 
   build_row = (idx) ->
@@ -149,14 +150,10 @@ coffee:
 
   play_next_note = ->
 
-    console.log "hit"
-
     missing_rows = []
 
     state.grid_matrix.forEach (row, row_idx) ->
 
-      # debugger
-      grid_state.col_idxs[row_idx] ||= 0
       col_idx = grid_state.col_idxs[row_idx]
 
       col = row[col_idx]
@@ -174,15 +171,11 @@ coffee:
 
       $last_col.removeClass("playing")
 
-      # if $last_container
-      #   $last_container.removeClass("playing")
-
       unless grid_state.$containers[row_idx]
         missing_rows << row_idx
         return
 
       $container = grid_state.$containers[row_idx][col_idx]
-      debugger unless $container
       $container.addClass("playing")
 
       switch col.cmd
@@ -201,18 +194,23 @@ coffee:
     missing_rows.sort().reverse().forEach (idx) ->
       state.grid_matrix.splice(idx, 1)
 
+  reset_grid_state = ->
+    $(".col.playing").removeClass "playing"
+    Object.keys(grid_state.col_idxs).forEach (row_idx) ->
+      grid_state.col_idxs[row_idx] = 0
+      grid_state.$containers[row_idx][0].addClass "playing"
+
   grid_tick = (ticks_gap, idx) ->
     ->
-      console.log "idx"
       if [ticks_gap, 0].includes(idx)
         play_next_note(idx) 
       idx += 1
       (idx = 0) if idx >= (ticks_gap * 2)
       if grid_state.stopping
-        Object.assign grid_state,
-          stopping: false
-          row: 0
-          col: 0
+        grid_state.stopping = false
+        reset_grid_state()
+
+
       else
         requestAnimationFrame grid_tick(ticks_gap, idx)
 
@@ -234,7 +232,6 @@ coffee:
     console.log ticks_gap, "ticks gap"
     $audios = $(".audio audio")
     $.each $(".row"), (row_idx, row_node) ->
-      grid_state.$containers[row_idx] ||= []
       row = grid_state.$containers[row_idx]
       $.each $(row_node).find(".col"), (col_idx, col) ->
         row.push $(col)
@@ -255,9 +252,13 @@ coffee:
 
     num_cols = ~~$default_row_length.val()
     row_idx = state.last_row_idx
-    # debugger unless row_idx
     set_num_cols(row_idx, num_cols, $rows, $row_wrapper, $ul)
     $num_cols.val(num_cols)
+
+    grid_state.col_idxs[row_idx] = 0
+
+    reset_grid_state()
+
     $remove_row.on "click", ->
       state.grid_matrix.splice(row_idx, 1)
       $row_wrapper.remove()
@@ -267,7 +268,6 @@ coffee:
       row_idx = $ul.data("idx")
       num_cols = ~~$num_cols.val()
       $ul.empty()
-      # debugger unless row_idx
       set_num_cols row_idx, num_cols, $rows, $row_wrapper, $ul
 
   $play_grid.on "click", ->
