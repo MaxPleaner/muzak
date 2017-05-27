@@ -82,6 +82,7 @@ coffee:
       common_name = $selected.text()
       row_idx = ~~$col.data("row-idx")
       col_idx = ~~$col.data("idx")
+      # debugger
       row = state.grid_matrix[row_idx]
       row[col_idx] = { cmd: "note", filename }
       $col.addClass("has-content")
@@ -99,7 +100,7 @@ coffee:
         $col.attr("title", "")
         $col.text ""
         $col.removeClass("has-content")
-        state.grid_matrix[row_idx][col_idx] = null
+        state.grid_matrix[row_idx][col_idx] = {cmd: "rest"}
         $col.find(".grid-cell-audio").empty()
       else
         return if $col.find(".col-opts-modal").length > 0
@@ -124,6 +125,7 @@ coffee:
       $ul.append $col
       add_col_events($col, row_idx, col_idx)
       grid_state.$containers[row_idx].push $col
+    # debugger
     $rows.append $row_wrapper
 
   build_row = (idx) ->
@@ -142,7 +144,7 @@ coffee:
     """
 
   grid_state =
-    col_idxs: {}
+    col_idxs: []
     audios: {}
     last_row_idx: -1
     $containers: []
@@ -154,6 +156,8 @@ coffee:
 
     state.grid_matrix.forEach (row, row_idx) ->
 
+      # debugger
+
       col_idx = grid_state.col_idxs[row_idx]
 
       col = row[col_idx]
@@ -164,6 +168,7 @@ coffee:
         col = row[col_idx]
 
       containers_row = grid_state.$containers[row_idx]
+      debugger unless containers_row
       $last_col = if col_idx == 0
         containers_row[(containers_row.length) - 1]
       else
@@ -172,7 +177,7 @@ coffee:
       $last_col.removeClass("playing")
 
       unless grid_state.$containers[row_idx]
-        missing_rows << row_idx
+        missing_rows.push row_idx
         return
 
       $container = grid_state.$containers[row_idx][col_idx]
@@ -194,10 +199,24 @@ coffee:
     missing_rows.sort().reverse().forEach (idx) ->
       state.grid_matrix.splice(idx, 1)
 
+  fix_containers_after_removal = (row_idx) ->
+    # Most of the grid data is stored in matrices,
+    # so indices are automatically adjusted upon row removal,
+    # but the data on the DOM has to be manually changed.
+    all_idxs = [0...(grid_state.$containers.length + 1)]
+    to_fix = all_idxs.filter (num) -> num > row_idx
+    to_fix.forEach (idx) ->
+      $containers = grid_state.$containers[idx - 1]
+      $containers[0].parent(".row").data("idx", idx - 1)
+      $containers.forEach ($container) ->
+        $container.attr("data-row-idx", idx - 1)
+    grid_state.last_row_idx -= 1
+
   reset_grid_state = ->
     $(".col.playing").removeClass "playing"
-    Object.keys(grid_state.col_idxs).forEach (row_idx) ->
+    grid_state.col_idxs.forEach (_, row_idx) ->
       grid_state.col_idxs[row_idx] = 0
+      grid_state.$containers[row_idx]
       grid_state.$containers[row_idx][0].addClass "playing"
 
   grid_tick = (ticks_gap, idx) ->
@@ -209,8 +228,6 @@ coffee:
       if grid_state.stopping
         grid_state.stopping = false
         reset_grid_state()
-
-
       else
         requestAnimationFrame grid_tick(ticks_gap, idx)
 
@@ -244,14 +261,14 @@ coffee:
     grid_state.stopping = true
 
   $add_row.on "click", ->
-    $row_wrapper = build_row(state.last_row_idx += 1)
+    $row_wrapper = build_row(grid_state.last_row_idx += 1)
     $rows.append $row_wrapper
     $ul = $row_wrapper.find "ul"
     $num_cols = $row_wrapper.find ".num-cols"
     $remove_row = $row_wrapper.find ".remove-row"
 
     num_cols = ~~$default_row_length.val()
-    row_idx = state.last_row_idx
+    row_idx = grid_state.last_row_idx
     set_num_cols(row_idx, num_cols, $rows, $row_wrapper, $ul)
     $num_cols.val(num_cols)
 
@@ -260,8 +277,11 @@ coffee:
     reset_grid_state()
 
     $remove_row.on "click", ->
+      grid_state.$containers.splice(row_idx, 1)
+      grid_state.col_idxs.splice row_idx, 1
       state.grid_matrix.splice(row_idx, 1)
       $row_wrapper.remove()
+      fix_containers_after_removal(row_idx)
 
     $num_cols.on "input", (e) ->
       $col = $(e.currentTarget)
