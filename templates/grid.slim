@@ -143,6 +143,7 @@ coffee:
   grid_state =
     col_idxs: {}
     audios: {}
+    last_row_idx: -1
     $containers: []
     stopping: false
 
@@ -154,6 +155,7 @@ coffee:
 
     state.grid_matrix.forEach (row, row_idx) ->
 
+      # debugger
       grid_state.col_idxs[row_idx] ||= 0
       col_idx = grid_state.col_idxs[row_idx]
 
@@ -253,6 +255,7 @@ coffee:
 
     num_cols = ~~$default_row_length.val()
     row_idx = state.last_row_idx
+    # debugger unless row_idx
     set_num_cols(row_idx, num_cols, $rows, $row_wrapper, $ul)
     $num_cols.val(num_cols)
     $remove_row.on "click", ->
@@ -261,9 +264,10 @@ coffee:
 
     $num_cols.on "input", (e) ->
       $col = $(e.currentTarget)
-      row_idx = $col.parent().data("idx")
+      row_idx = $ul.data("idx")
       num_cols = ~~$num_cols.val()
       $ul.empty()
+      # debugger unless row_idx
       set_num_cols row_idx, num_cols, $rows, $row_wrapper, $ul
 
   $play_grid.on "click", ->
