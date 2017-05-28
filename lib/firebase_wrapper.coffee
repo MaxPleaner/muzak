@@ -1,21 +1,23 @@
-# ============================================================================
-# This is a custom ORM for Firebase;
-# it's very tied in with this particular application.
-#
-# The following things are stored in Firebase:
-#
-# 1. audio recording blobs are saved at /users/<id>/audios/<filename>
-#    - this uses Firebase storage which does not have an index route
-#
-# 2. list of blobs per user stored at /users/<id>/audios/<filename>
-#    - this uses Firebase realtime database
-#    - this is only necessary because the storage API lacks an index route
-#
-# Useful concepts:
-#
-# https://developer.mozilla.org/en-US/docs/Web/API/Blob
-# https://firebase.google.com/docs/storage/web/upload-files
-# ============================================================================
+# TODO
+
+#logged_in StaticDom, Templates, user
+
+    # window.UID = user.uid
+    # db.ready()
+    # $auth_content.remove()
+    # $root_wrapper = $ "#root-wrapper"
+    # $root_wrapper.append($root_content)
+    # $grid_wrapper = $root_content.find "#grid-wrapper"
+    # $grid_wrapper.append $grid_content
+    # $credentials = $root_content.find "#credentials"
+    # $credentials.text "logged in as #{user.email}"
+
+#logged_out StaticDom, Templates
+
+    # window.UID = null
+    # $root_content.remove()
+    # $auth_wrapper = $ "#auth-wrapper"
+    # $auth_wrapper.append $auth_content
 
 module.exports = FirebaseWrapper = class
 
