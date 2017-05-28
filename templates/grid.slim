@@ -1,4 +1,4 @@
-#grid-content.hidden
+ #grid-content.hidden
   
   label for='default-length' default row length: 
   input{
@@ -47,6 +47,10 @@
 
 coffee:
 
+# ============================================================================
+# Static handles of DOM elements
+# ============================================================================
+
   $grid_content = $ "#grid-content"
   $add_row = $grid_content.find "#add-row"
   $play_grid = $grid_content.find "#play-grid"
@@ -56,6 +60,10 @@ coffee:
   $division = $grid_content.find "#division"
   $default_row_length = $grid_content.find "#default-row-length"
 
+# ============================================================================
+# Crafts HTML for a column in the grid.
+# ============================================================================
+
   build_col = (row_idx, col_idx) ->
     $ """
       <li data-row-idx='#{row_idx}' data-idx='#{col_idx}' class='col'>
@@ -64,6 +72,13 @@ coffee:
         </section>
       </li>
     """
+
+# ============================================================================
+# When a column is clicked, a modal should appear to select the recording to
+# play at that grid slot.
+# In it's current state this isn't actually a modal, but rather a dropdown
+# that gets temporarily placed inside the column box.
+# ============================================================================
 
   show_modal = ($col) ->
     $opts = $("#audio-selector").clone()
@@ -77,7 +92,6 @@ coffee:
     $opts.prepend $ """
       <option disabled selected value> -- select an option -- </option>
     """
-    $
     $modal.append $opts
     $opts.on "change", ->
       $selected = $opts.find("option:selected")
@@ -85,7 +99,6 @@ coffee:
       common_name = $selected.text()
       row_idx = ~~$col.data("row-idx")
       col_idx = ~~$col.data("idx")
-      # debugger
       row = state.grid_matrix[row_idx]
       row[col_idx] = { cmd: "note", filename }
       $col.addClass("has-content")
@@ -95,6 +108,10 @@ coffee:
       $grid_cell_audio.empty().append $audio
       $modal.remove()
     $modal
+
+# ============================================================================
+# Event listeners for columns.
+# ============================================================================
 
   add_col_events = ($col, row_idx, col_idx) ->
     $text = $col.find(".col-text")
@@ -117,6 +134,14 @@ coffee:
       $text.text ""
       true
 
+# ============================================================================
+# Columns are temporary things in this grid implementation.
+# Whenever the number of columns in a row changes,
+# all of the columns in the row are deleted and new ones generated.
+# This method handles that, as well as setting up the initial state of a row.
+# It creates the columns' HTML and attaches them to the DOM.
+# ============================================================================
+
   set_num_cols = (row_idx, num_cols, $rows, $row_wrapper, $ul) ->
     state.grid_matrix[row_idx] = ((array) ->
       [0...num_cols].forEach -> array.push {cmd: "rest"}
@@ -128,8 +153,12 @@ coffee:
       $ul.append $col
       add_col_events($col, row_idx, col_idx)
       grid_state.$containers[row_idx].push $col
-    # debugger
     $rows.append $row_wrapper
+
+# ============================================================================
+# Builds HTML for a row.
+# This is only run when the 'add row' button is clicked.
+# ============================================================================
 
   build_row = (idx) ->
     $ """
@@ -146,6 +175,26 @@ coffee:
       </div>
     """
 
+# ============================================================================
+# State tracking for the grid, in a global variable.
+# This is the private state of the grid.
+# The public interface (state.grid_matrix) is only used to store commands,
+# everything else happens here.
+
+# For example if there was 1 row with 2 columns,
+# state.grid matrix could be [[{cmd: "rest"}, {cmd: "play", filename: "foo"}]]
+# and grid_state would contain references to the grid's audio context, recording
+# stream, column nodes, audio nodes, per-row indexes, and play/stop state.
+
+# As for why per-row indexes are stored; that's so the grid can be polyrhythmic.
+# For example if one row has 3 columns and another row has 4, then they
+# should only play the first column together every 3 repetitions.
+
+# The grid gets it's own audio context (which should in the future be removed,
+# and the existing audio context used) and thus another recorder, which gets
+# event listeners declared here. 
+# ============================================================================
+
   window.grid_state = (->
     context = new AudioContext()
     stream = context.createMediaStreamDestination()
@@ -153,7 +202,7 @@ coffee:
     stream.connect context.destination
     recorder.onerror = (e) ->
       console.log "GRID RECORD ERROR"
-      debugger
+      throw e
     recorder.ondataavailable = (e) ->
       grid_state.recording_chunks.push e.data
     recorder.onstop = (e) ->
@@ -172,39 +221,40 @@ coffee:
     }
   )()
 
+
+# ============================================================================
+# Every N frames (where N is dynamically calculated by the BPM/division settings)
+# the next column in each row gets played.
+#
+# This function plays the columns, then increments the indexes.
+# The incrementing happens optimistically, so there's a nil check which resets
+# the index to zero if no column exists at that index
+#
+# Something similar is used to handle rows being deleted during playback.
+# The deletion in grid_state happens optimistically, and if state.grid_matrix
+# requests a row which doesn't exist, then state.grid_matrix is updated.
+# ============================================================================
+
   play_next_note = ->
-
     missing_rows = []
-
     state.grid_matrix.forEach (row, row_idx) ->
-
-      # debugger
-
       col_idx = grid_state.col_idxs[row_idx]
-
       col = row[col_idx]
-
       if !col
         col_idx = 0
         grid_state.col_idxs[row_idx] = col_idx
         col = row[col_idx]
-
       containers_row = grid_state.$containers[row_idx]
-      debugger unless containers_row
       $last_col = if col_idx == 0
         containers_row[(containers_row.length) - 1]
       else
         containers_row[col_idx - 1]
-
       $last_col.removeClass("playing")
-
       unless grid_state.$containers[row_idx]
         missing_rows.push row_idx
         return
-
       $container = grid_state.$containers[row_idx][col_idx]
       $container.addClass("playing")
-
       switch col.cmd
         when "rest"
           null
@@ -216,16 +266,17 @@ coffee:
           aud.pause()
           aud.currentTime = 0
           aud.play()
-
       grid_state.col_idxs[row_idx] += 1
-
     missing_rows.sort().reverse().forEach (idx) ->
       state.grid_matrix.splice(idx, 1)
 
+# =============================================================================
+# Most of the grid data is stored in matrices,
+# so indices are automatically adjusted upon row removal,
+# but the data on the DOM has to be manually changed.
+# =============================================================================
+
   fix_containers_after_removal = (row_idx) ->
-    # Most of the grid data is stored in matrices,
-    # so indices are automatically adjusted upon row removal,
-    # but the data on the DOM has to be manually changed.
     all_idxs = [0...(grid_state.$containers.length + 1)]
     to_fix = all_idxs.filter (num) -> num > row_idx
     to_fix.forEach (idx) ->
@@ -235,12 +286,21 @@ coffee:
         $container.attr("data-row-idx", idx - 1)
     grid_state.last_row_idx -= 1
 
+# ============================================================================
+# Sets the column indexes to 0, both visually and in the grid_state
+# ============================================================================
+
   reset_grid_state = ->
     $(".col.playing").removeClass "playing"
     grid_state.col_idxs.forEach (_, row_idx) ->
       grid_state.col_idxs[row_idx] = 0
-      grid_state.$containers[row_idx]
       grid_state.$containers[row_idx][0].addClass "playing"
+
+# =============================================================================
+# Called every animation frame, determines based on the provided "ticks_gap"
+# (the number of ms to wait between playing columns) whether to move forward in
+# the grid.
+# =============================================================================
 
   grid_tick = (ticks_gap, idx) ->
     ->
@@ -254,6 +314,11 @@ coffee:
       else
         requestAnimationFrame grid_tick(ticks_gap, idx)
 
+# ============================================================================
+# When a recording is attached to a column, a hidden audio node is created 
+# which gets attached to the grid recorder.
+# ============================================================================
+
   add_grid_audio_ref = (audio) ->
     { context, stream } = grid_state
     audio_clone = $(audio).clone()[0]
@@ -263,6 +328,13 @@ coffee:
     source.connect context.destination
     source.connect stream
     audio_clone
+
+# ============================================================================
+# When the 'play grid' button is clicked, the DOM is parsed for bpm/division
+# which is used to call grid_tick (invoked in an animation frame request)
+#
+# NOTE looks to be a small bug in here, add_grid_audio_ref should be cached
+# ============================================================================
 
   play_grid = ->
     return true if state.grid_matrix.length < 1
@@ -284,15 +356,32 @@ coffee:
       add_grid_audio_ref(audio)
     requestAnimationFrame(grid_tick ticks_gap, 0)
 
+# ============================================================================
+# Stops the grid by setting a config option that short-circuits the recursive
+# requestAnimationFrame sequence in grid_tick
+# ============================================================================
+
   stop_grid = ->
     grid_state.stopping = true
+
+# ============================================================================
+# Turns grid recording on
+# ============================================================================
 
   start_recording = ->
     grid_state.recorder.start(1000)
 
+# ============================================================================
+# Turns grid recording off
+# ============================================================================
+
   stop_recording = ->
     grid_state.stream.disconnect()
     grid_state.recorder.stop()
+
+# ============================================================================
+# Event listeners for button which toggles grid recording
+# ============================================================================
 
   $record_grid.on "click", ->
     if $record_grid.data("state") == "recording"
@@ -303,6 +392,11 @@ coffee:
       $record_grid.data("state", "recording")
       $record_grid.text "record (stop)"
       start_recording()
+
+# ============================================================================
+# Event listener to add a row to the grid
+# Declares event listeners for the row (num cols, remove button)
+# ============================================================================
 
   $add_row.on "click", ->
     $row_wrapper = build_row(grid_state.last_row_idx += 1)
@@ -334,6 +428,10 @@ coffee:
       $ul.empty()
       set_num_cols row_idx, num_cols, $rows, $row_wrapper, $ul
 
+# ============================================================================
+# Button to toggle playback of the grid
+# ============================================================================
+
   $play_grid.on "click", ->
     if $play_grid.data("state") == "playing"
       $play_grid.text "play"
@@ -343,3 +441,5 @@ coffee:
       $play_grid.text "stop"
       $play_grid.data("state", "playing")
       play_grid()
+
+

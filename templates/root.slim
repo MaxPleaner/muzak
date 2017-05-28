@@ -99,6 +99,11 @@ coffee:
 
   $ ->
 
+# =============================================================================
+# Get handles on a bunch of static stuff on the DOM.
+# Makes $(e.currentTarget) not necessary in most cases.
+# =============================================================================
+
     window.Dom = (->
 
       @root_content = $("#root-content")
@@ -121,17 +126,31 @@ coffee:
       this
     ).apply {}
 
-
+# =============================================================================
+# Track whether audio is playing and the analyser is visible.
+# =============================================================================
     window.DomState = 
       analyser_visible: false
       audio_playing: false
 
+============================================================================
+# Start the analyser when the page loads.
+# Declare the callback for updated data
+============================================================================
     Utils.init_analyser ({note, hz, semitones}) ->
       Dom.analyser_note.text(note)
       Dom.analyser_hz.text(hz) unless isNaN hz
       Dom.analyser_semitones.text(semitones) unless isNaN semitones
 
+# ============================================================================
+# Events that are called inline from the HTML in the template
+# ============================================================================
+
     window.Events =
+
+# ============================================================================
+# Toggles the visibility of the recordings section
+# ============================================================================
 
       show_recordings: -> (->
         if Dom.show_recordings.data("state") == "visible"
@@ -146,6 +165,10 @@ coffee:
 
       ).apply Utils
 
+# ============================================================================
+# toggles the visibility of the grid
+# ============================================================================
+
       show_grid: -> (->
         $grid = Dom.grid_wrapper.find("#grid-content")
         if Dom.show_grid.data("state") == "visible"
@@ -159,9 +182,19 @@ coffee:
 
       ).apply Utils
 
+# ============================================================================
+# logs the user out.
+# no success callback is declared here;
+# rather the auth state is listened to elsewhere
+# ============================================================================
+
       logout: -> (->
         firebase.auth().signOut()
       ).apply Utils
+
+# ============================================================================
+# Toggles the visibility of the analyser
+# ============================================================================
 
       show_analyser: -> (->
         if Dom.show_analyser_btn.data("state") == "open"
@@ -179,6 +212,10 @@ coffee:
 
       ).apply Utils
 
+# ============================================================================
+# Toggles recording state
+# ============================================================================
+
       record: (e) -> (->
         if Dom.record_btn.data("playing") == "true"
           @media_stream.disconnect()
@@ -194,6 +231,11 @@ coffee:
           Dom.record_btn.text("record (stop)").data("playing", "true")
       ).apply Utils
 
+# ============================================================================
+# Adds a new audio generator to the page.
+# Declares event listeners for it.
+# ============================================================================
+
       add_audio: (e) -> (->
 
         $template = $ Dom.audio_template[0].innerHTML
@@ -208,7 +250,6 @@ coffee:
           $oscillator_type: $template.find(".dropdowns [name='oscillator-type']")
         $tone_value = $template.find(".tone-value")
         $gain_value = $template.find(".gain-value")
-
 
         id = (@last_id += 1)
 

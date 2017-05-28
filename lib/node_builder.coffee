@@ -1,8 +1,21 @@
+
+# ============================================================================
+# Some utility methods for building Web Audio components
+#
+# Stuff to add:
+#   - panning
+#   - distortion
+#   - reverb
+#   - delay
+#
+#   etc
+# ============================================================================
+
 module.exports = class NodeBuilder
+
   constructor: (context) ->
     @context = context
 
-  #public
   add_oscillator: ->
     oscillator = @context.createOscillator()
     oscillator.type = 'sine'

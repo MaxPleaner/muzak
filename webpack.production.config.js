@@ -1,4 +1,11 @@
-// Little trick so that that coffee-loader uses coffee 2
+
+
+
+
+// --------------------------------------------------
+// Gets run with 'npm deploy'
+// Builds dist/bundle.js
+// --------------------------------------------------
 
 var coffeescript = require('coffee-script')
 require.cache[require.resolve('coffee-script')] = require.cache[require.resolve('coffeescript')]
@@ -6,8 +13,6 @@ require.cache[require.resolve('coffee-script')] = require.cache[require.resolve(
 module.exports = {
 
   entry: "./entry.coffee",
-
-  // the bundle is stored in memory, though it's referenced by this path
 
   output: {
     filename: "dist/bundle.js"
@@ -34,17 +39,14 @@ module.exports = {
 
   resolve: {
 
-    // Put an entry here for each of the extensions which has a loader
     extensions: [".js", ".coffee", ".slim", ".sass", ".css"],
 
-    // Something needed for Vue
     alias: {
       'vue$': 'vue/dist/vue.esm.js'
     }
 
   },
 
-  // Starts a static server with index.html at root
   context: __dirname,
 
 };
