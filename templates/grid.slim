@@ -33,6 +33,8 @@
     option value='12' sixteenth note triplets
     option value='16' sixteenth notes 
   br
+  button#record-grid record
+  br
   button#play-grid play
   br
   button#add-row add row
@@ -48,6 +50,7 @@ coffee:
   $grid_content = $ "#grid-content"
   $add_row = $grid_content.find "#add-row"
   $play_grid = $grid_content.find "#play-grid"
+  $record_grid = $grid_content.find "#record-grid"
   $rows = $grid_content.find "#rows"
   $bpm = $grid_content.find "#bpm"
   $division = $grid_content.find "#division"
@@ -143,12 +146,31 @@ coffee:
       </div>
     """
 
-  grid_state =
-    col_idxs: []
-    audios: {}
-    last_row_idx: -1
-    $containers: []
-    stopping: false
+  window.grid_state = (->
+    context = new AudioContext()
+    stream = context.createMediaStreamDestination()
+    recorder = new MediaRecorder(stream.stream)
+    stream.connect context.destination
+    recorder.onerror = (e) ->
+      console.log "GRID RECORD ERROR"
+      debugger
+    recorder.ondataavailable = (e) ->
+      grid_state.recording_chunks.push e.data
+    recorder.onstop = (e) ->
+      blob = new Blob grid_state.recording_chunks,
+        type: 'audio/ogg; codecs=opus'
+      filename = "#{Utils.random_string()}.webm"
+      db.store_audio(blob, filename)
+    {
+      context, stream, recorder
+      col_idxs: []
+      audios: {}
+      last_row_idx: -1
+      $containers: []
+      stopping: false
+      recording_chunks: []
+    }
+  )()
 
   play_next_note = ->
 
@@ -233,9 +255,13 @@ coffee:
         requestAnimationFrame grid_tick(ticks_gap, idx)
 
   add_grid_audio_ref = (audio) ->
+    { context, stream } = grid_state
     audio_clone = $(audio).clone()[0]
     grid_state.audios[$(audio).data("filename")] = audio_clone
     audio_clone.loop = false
+    source = context.createMediaElementSource audio_clone
+    source.connect context.destination
+    source.connect stream
     audio_clone
 
   play_grid = ->
@@ -260,6 +286,23 @@ coffee:
 
   stop_grid = ->
     grid_state.stopping = true
+
+  start_recording = ->
+    grid_state.recorder.start(1000)
+
+  stop_recording = ->
+    grid_state.stream.disconnect()
+    grid_state.recorder.stop()
+
+  $record_grid.on "click", ->
+    if $record_grid.data("state") == "recording"
+      $record_grid.data("state", "stopped")
+      $record_grid.text "record"
+      stop_recording()
+    else
+      $record_grid.data("state", "recording")
+      $record_grid.text "record (stop)"
+      start_recording()
 
   $add_row.on "click", ->
     $row_wrapper = build_row(grid_state.last_row_idx += 1)
