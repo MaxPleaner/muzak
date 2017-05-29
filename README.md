@@ -5,5 +5,5 @@
   - html5 web audio api (audio context)
 - **try it out** at http://maxpleaner.github.io/muzak
 - **screencast**:
-    [![screencast](./screencasast_link.png)](https://vimeo.com/219435376)
+    [![screencast](./screencast_link.png)](https://vimeo.com/219435376)
 
