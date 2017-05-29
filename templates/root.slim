@@ -8,28 +8,23 @@
         span sounds
     .title-buttons
       button#add-audio {
-        onclick='Events.add_audio()'
         title='any number of oscillators can be added'
       } add oscillator
       button#record {
-        onclick='Events.record()'
         title='persisted in firebase!'
       } record
       button#show-analyser {
-        onclick='Events.show_analyser()'
         title='uses equal temperament scale'
       } analyser (show)
       button#show-grid{
-        onclick='Events.show_grid()'
       } grid (show)
       button#show-recordings{
-        onclick='Events.show_recordings()'
       } recordings (show)
     br
 
     #credentials
     
-    button#logout onclick="Events.logout()" logout
+    button#logout logout
     br
   
   br
@@ -97,215 +92,4 @@
 
 coffee:
 
-  $ ->
-
-# =============================================================================
-# Get handles on a bunch of static stuff on the DOM.
-# Makes $(e.currentTarget) not necessary in most cases.
-# =============================================================================
-
-    window.Dom = (->
-
-      @root_content = $("#root-content")
-      @audios = @root_content.find("#audios")
-      @recordings = @root_content.find("#recordings")
-      @audio_template = @root_content.find("#audio-template")
-      @analyser = @root_content.find("#analyser")
-      @analyser_note = @analyser.find("#note")
-      @analyser_hz = @analyser.find("#hz")
-      @analyser_semitones = @analyser.find("#semitones")
-      @record_btn = @root_content.find("#record")
-      @recordings = @root_content.find("#recordings")
-      @recordings_index = @root_content.find("#recordings-index")
-      @show_analyser_btn = @root_content.find("#show-analyser")
-      @show_grid = @root_content.find("#show-grid")
-      @grid_wrapper = @root_content.find("#grid-wrapper")
-      @show_recordings = @root_content.find("#show-recordings")
-      @around_recordings = @root_content.find("#around-recordings")
-
-      this
-    ).apply {}
-
-# =============================================================================
-# Track whether audio is playing and the analyser is visible.
-# =============================================================================
-    window.DomState = 
-      analyser_visible: false
-      audio_playing: false
-
-============================================================================
-# Start the analyser when the page loads.
-# Declare the callback for updated data
-============================================================================
-    Utils.init_analyser ({note, hz, semitones}) ->
-      Dom.analyser_note.text(note)
-      Dom.analyser_hz.text(hz) unless isNaN hz
-      Dom.analyser_semitones.text(semitones) unless isNaN semitones
-
-# ============================================================================
-# Events that are called inline from the HTML in the template
-# ============================================================================
-
-    window.Events =
-
-# ============================================================================
-# Toggles the visibility of the recordings section
-# ============================================================================
-
-      show_recordings: -> (->
-        if Dom.show_recordings.data("state") == "visible"
-          Dom.show_recordings
-          .data("state", "hidden")
-          .text("recordings (show)")
-        else
-          Dom.show_recordings
-          .data("state", "visible")
-          .text("recordings (hide)")
-        Dom.around_recordings.toggleClass("hidden")
-
-      ).apply Utils
-
-# ============================================================================
-# toggles the visibility of the grid
-# ============================================================================
-
-      show_grid: -> (->
-        $grid = Dom.grid_wrapper.find("#grid-content")
-        if Dom.show_grid.data("state") == "visible"
-          $grid.addClass("hidden")
-          Dom.show_grid.data("state", "hidden")
-          Dom.show_grid.text "grid (show)"
-        else
-          $grid.removeClass("hidden")
-          Dom.show_grid.data("state", "visible")
-          Dom.show_grid.text "grid (hide)"
-
-      ).apply Utils
-
-# ============================================================================
-# logs the user out.
-# no success callback is declared here;
-# rather the auth state is listened to elsewhere
-# ============================================================================
-
-      logout: -> (->
-        firebase.auth().signOut()
-      ).apply Utils
-
-# ============================================================================
-# Toggles the visibility of the analyser
-# ============================================================================
-
-      show_analyser: -> (->
-        if Dom.show_analyser_btn.data("state") == "open"
-          Dom.show_analyser_btn
-          .text("analyser (show)")
-          .data("state", "closed")
-          Dom.analyser.addClass "hidden"
-          DomState.analyser_visible = false
-        else
-          Dom.show_analyser_btn
-          .text("analyser (hide)")
-          .data("state", "open")
-          Dom.analyser.removeClass "hidden"
-          DomState.analyser_visible = true
-
-      ).apply Utils
-
-# ============================================================================
-# Toggles recording state
-# ============================================================================
-
-      record: (e) -> (->
-        if Dom.record_btn.data("playing") == "true"
-          @media_stream.disconnect()
-          @analyser.disconnect()
-          @analyser.connect @context.destination
-          @media_recorder.stop()
-          Dom.record_btn.text("record").data("playing", "false")
-        else
-          @analyser.disconnect()
-          @analyser.connect @media_stream
-          @media_stream.connect @context.destination
-          @media_recorder.start(1000)
-          Dom.record_btn.text("record (stop)").data("playing", "true")
-      ).apply Utils
-
-# ============================================================================
-# Adds a new audio generator to the page.
-# Declares event listeners for it.
-# ============================================================================
-
-      add_audio: (e) -> (->
-
-        $template = $ Dom.audio_template[0].innerHTML
-        Dom.audios.append $template
-        $play_btn = $template.find(".play")
-        $stop_btn = $template.find(".stop")
-        $remove_btn = $template.find(".remove")
-        sliders = 
-          $oscillator: $template.find(".sliders [name='oscillator']")
-          $gain: $template.find(".sliders [name='gain']")
-        dropdowns =
-          $oscillator_type: $template.find(".dropdowns [name='oscillator-type']")
-        $tone_value = $template.find(".tone-value")
-        $gain_value = $template.find(".gain-value")
-
-        id = (@last_id += 1)
-
-        $play_btn.on "click", =>
-          @create_nodes(id)
-          $play_btn.addClass("hidden")
-          $stop_btn.removeClass("hidden")
-          sliders.$oscillator.trigger "input"
-          sliders.$gain.trigger "input"
-
-        $stop_btn.on "click", =>
-          @stop_nodes(id)
-          $play_btn.removeClass("hidden")
-          $stop_btn.addClass("hidden")
-
-        $remove_btn.on "click", =>
-          @stop_nodes(id)
-          $template.remove()
-
-        sliders.$oscillator.on "input", =>
-          freq = parseFloat sliders.$oscillator.val()
-          $tone_value.val(freq)
-          if @nodes[id]
-            oscillator = @nodes[id].oscillator
-            if oscillator
-              oscillator.frequency.value = freq
-
-        sliders.$oscillator.trigger("input")
-
-        sliders.$gain.on "input", =>
-          val = parseFloat sliders.$gain.val()
-          $gain_value.val(val.toPrecision(4))
-          if @nodes[id]
-            gain = @nodes[id].gain
-            if gain
-              gain.gain.value = val
-
-        sliders.$gain.trigger("input")
-
-        dropdowns.$oscillator_type.on "change", =>
-          type = dropdowns.$oscillator_type.val()
-          @nodes[id].oscillator.type = type
-
-        $tone_value.on "input", (e) =>
-          oscillator = sliders.$oscillator
-          oscillator.val $tone_value.val()
-          oscillator.trigger "input"
-
-        $gain_value.on "input", (e) =>
-          gain = sliders.$gain
-          gain.val $gain_value.val()
-          gain.trigger "input" 
-
-      ).apply Utils
-
-
-
-
-
+  new TemplateCallbacks.root(Muzak)

@@ -9,22 +9,21 @@ AttachStylesheets = require './lib/attach_stylesheets.coffee'
 Templates         = require './lib/templates.coffee'
 InitDom           = require './lib/init_dom.coffee'
 StaticDom         = require './lib/static_dom.coffee'
+TemplateCallbacks = require './lib/template_callbacks.coffee'
+State             = require './lib/state.coffee'
 
-{ $, sig2hz, firebase }                                          = NpmDeps
-{ FirebaseWrapper, NodeBuilder, Utils, is_hash }                 = CustomDeps
-
-new AttachStylesheets()
-
-state =
-  grid_matrix: []
-  last_row_idx: -1
+{ firebase, $ } = NpmDeps
 
 db = new FirebaseWrapper({firebase})
 
-Object.assign window, {
+new AttachStylesheets()
+
+Muzak = {
   $, firebase, sig2hz, NodeBuilder, Utils, is_hash,
-  db, state
+  db, state, Templates, FirebaseWrapper, TemplateCallbacks
 }
 
-new InitDom(StaticDom, Templates)
+Object.assign window, { Muzak, $ }
+
+new InitDom(Muzak)
 
