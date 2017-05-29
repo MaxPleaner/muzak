@@ -1,39 +1,71 @@
 module.exports = class
 
   constructor: (Muzak) ->
-    {@Utils, @StaticDom} = Muzak
+    {@Utils, @StaticDom, @firebase} = Muzak
     @init_analyser()
     @add_event_listeners()
 
   add_event_listeners: ->
-    @listener_to_add_sound_generator()
-    @listener_to_toggle_recording_state()
-    @listener_to_toggle_analyser_visibility()
-    @listener_to_toggle_grid_visibility()
-    @listener_to_toggle_recordings_visibility()
-    @listener_to_logout()
-
-  listener_to_logout: ->
     @StaticDom.logout.on "click" @logout_on_click()
+    @StaticDom.show_recordings().on 'click', @show_recordings_on_click
+    @StaticDom.show_analyser().on 'click', @show_analyser_on_click
+    @StaticDom.show_grid().on 'click', @show_grid_on_click
+    @StaticDom.record().on 'click', @record_on_click
+    @StaticDom.add_audio().on 'click', @add_audio_on_click
 
-  listener_to_toggle_recordings_visibility: ->
-    @StaticDom.show_recordings().on 'click', @show_recordings_on_click()
+  logout_on_click: ->
+    @firebase.auth().signOut()
 
-  listener_to_toggle_analyser_visibility: ->
-    @StaticDom.show_analyser().on 'click', @show_analyser_on_click()
+  show_analyser_on_click: ->
+    if @analyser_visible() then @hide_analyser() else @show_analyser()
 
-  listener_to_toggle_grid_visibility: ->
-    @StaticDom.show_grid().on 'click', @show_grid_on_click()
+  add_audio_on_click: ->
+    $template = $ @StaticDom.audio_template()[0].innerHTML
+    @StaticDom.audios().append $template
+    $play_btn = $template.find(".play")
+    $stop_btn = $template.find(".stop")
+    $remove_btn = $template.find(".remove")
 
-  listener_to_toggle_recording_state: ->
-    @StaticDom.record().on 'click', @record_on_click()
+  record_on_click: ->
+    if @recordings_visible() then @hide_recordings() else @show_recordings()
 
-  listener_to_add_sound_generator: ->
-    @StaticDom.add_audio().on 'click', @add_audio_on_click()
+  recordings_visible: ->
+    @StaticDom.record_btn().data("playing") == "true"
 
-  logout_on_click: -> =>
+  hide_recordings: ->
+    @Utils.media_stream.disconnect()
+    @Utils.analyser.disconnect()
+    @Utils.analyser.connect @Utils.context.destination
+    @Utils.media_recorder.stop()
+    @StaticDom.record_btn()
+    .text("record")
+    .data("playing", "false")
 
-  show_grid_on_click: -> =>
+  show_recordings: ->
+    @Utils.analyser.disconnect()
+    @Utils.analyser.connect @Utils.media_stream
+    @Utils.media_stream.connect @Utils.context.destination
+    @Utils.media_recorder.start 1000
+    @StaticDom.record_btn()
+    .text("record(stop)")
+    .data("playing", "true")
+
+  show_analyser: ->
+    @StaticDom.analyser().removeClass "hidden"
+    @StaticDom.show_analyser_btn()
+    .text("analyser (hide)")
+    .data("state", "open")
+
+  hide_analyser: ->
+    @StaticDom.analyser().addClass "hidden"
+    @StaticDom.show_analyser_btn()
+    .text("analyser (show)")
+    .data("state", "closed")
+
+  analyser_visible: ->
+    @StaticDom.show_analyser_btn().data("state") == "open"
+
+  show_grid_on_click: ->
     if @grid_visible() then @hide_grid() else @show_grid()
 
   grid_visible: ->
@@ -51,13 +83,8 @@ module.exports = class
     .data("state", "hidden")
     .text("grid (show)")
 
-  show_analyser_on_click: -> =>
 
-  add_audio_on_click: -> =>
-
-  record_on_click: -> =>
-
-  show_recordings_on_click: -> =>
+  show_recordings_on_click: ->
     if @recordings_visible() then @hide_recordings() else @show_recordings()      
 
   recordings_visible: ->
