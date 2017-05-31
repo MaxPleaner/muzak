@@ -7,6 +7,9 @@ module.exports = (->
   @layout_wrapper = =>
     @_layout_wrapper ||= $("#layout-wrapper")
 
+  @root_wrapper = =>
+    @_root_wrapper ||= $("#root-wrapper")
+
   @root_content = =>
     @_root_content ||= $("#root-content")
 
@@ -16,6 +19,9 @@ module.exports = (->
 # ============================================================================
 # Auth 
 # ============================================================================ 
+
+  @credentials = =>
+    @_credentials ||= @root_content.find("#credentials")
 
   @errors = =>
     @_errors ||= @auth_content.find("#errors")

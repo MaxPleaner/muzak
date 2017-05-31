@@ -1,27 +1,30 @@
-module.exports = class
+module.exports = load: (deps) ->
 
-  initialize: ( {StaticDom, Templates, FirebaseWrapper }) ->
+  { StaticDom, Templates, Utils } = deps
 
-    Object.assign this, { StaticDom, Templates, FirebaseWrapper }
-    @add_layout()
-    @add_auth_listeners()
-    @add_keyboard_shortcuts()
-  
-  add_layout: ->
+  class
 
-    @StaticDom.layout_wrapper().append(Templates.$layout_content)
+    initialize: (deps) ->
+      
+      @add_layout()
+      @add_auth_listeners()
+      @add_keyboard_shortcuts()
+    
+    add_layout: ->
 
-  add_auth_listeners: ->
+      StaticDom.layout_wrapper().append(Templates.$layout_content)
 
-    firebase.auth().onAuthStateChanged (user) ->
-      if user
-        @FirebaseWrapper.logged_in({StaticDom, Templates, user})
-      else
-        @FirebaseWrapper.logged_out({StaticDom, Templates})
+    add_auth_listeners: ->
 
-  add_keyboard_shortcuts: ->
+      firebase.auth().onAuthStateChanged (user) ->
+        if user
+          Utils.logged_in(user)
+        else
+          Utils.logged_out()
 
-    $(document).on "keyup", (e) ->
-      if e.which == 82 # the 'r' key
-        $("#record").trigger "click"
-  
+    add_keyboard_shortcuts: ->
+
+      $(document).on "keyup", (e) ->
+        if e.which == 82 # the 'r' key
+          $("#record").trigger "click"
+    

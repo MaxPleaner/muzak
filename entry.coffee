@@ -10,32 +10,36 @@
 # lib/template_callbacks/<template>.slim
 # ============================================================================
 
-$        = require 'jquery'
-sig2hz   = require 'signaltohertz'
-firebase = require 'firebase/app'
+deps = (->
 
-require 'firebase/auth'
-require 'firebase/storage'
-require 'firebase/database'
+  @$        = require 'jquery'
+  @sig2hz   = require 'signaltohertz'
+  @firebase = require 'firebase/app'
 
-FirebaseWrapper   = require './lib/firebase_wrapper.coffee'
-NodeBuilder       = require './lib/node_builder.coffee'
-Utils             = require './lib/utils.coffee'
-is_hash           = require "./lib/is_hash.coffee"
-AttachStylesheets = require './lib/attach_stylesheets.coffee'
-Templates         = require './lib/templates.coffee'
-InitDom           = require './lib/init_dom.coffee'
-StaticDom         = require './lib/static_dom.coffee'
-TemplateCallbacks = require './lib/template_callbacks.coffee'
-State             = require './lib/state.coffee'
-Validations       = require('./lib/validations.coffee').load({StaticDom})
+  require 'firebase/auth'
+  require 'firebase/storage'
+  require 'firebase/database'
 
-db = new FirebaseWrapper({firebase})
+  @NodeBuilder       = require './lib/node_builder.coffee'
+  @Utils             = require './lib/utils.coffee'
+  @is_hash           = require "./lib/is_hash.coffee"
+  @AttachStylesheets = require './lib/attach_stylesheets.coffee'
+  @Templates         = require './lib/templates.coffee'
+  @StaticDom         = require './lib/static_dom.coffee'
+  @TemplateCallbacks = require './lib/template_callbacks.coffee'
+  @State             = require './lib/state.coffee'
+  @JsPatches         = require './lib/js_patches.coffee'
 
-Object.assign window, { $, Muzak: {
-  firebase, sig2hz, NodeBuilder, Utils, is_hash, db, state,
-  Templates, FirebaseWrapper, TemplateCallbacks, Validations
-}}
+  @InitDom           = require('./lib/init_dom.coffee').load(this)
+  @FirebaseWrapper   = require('./lib/firebase_wrapper.coffee').load(this)
+  @Validations       = require('./lib/validations.coffee').load(this)
+  @db = new FirebaseWrapper(this)
+
+  this
+
+).apply {}
+
+Object.assign window, {$, Muzak: deps}
   
-new InitDom(Muzak)
+new InitDom(deps)
 

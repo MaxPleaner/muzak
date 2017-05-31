@@ -22,7 +22,7 @@ module.exports = class
   add_audio_on_click: ->
     $template = @build_audio_template()
     controls = @get_audio_controls $template
-    id = (@Utils.last_id += 1)
+    id = (@Utils.last_row_idx += 1)
     @add_audio_event_listeners(id, controls)
 
   set_audio_initial_state: (controls) ->
@@ -118,7 +118,7 @@ module.exports = class
     dropdowns:
       $oscillator_type: $template.find(".dropdowns [name='oscillator-type']")
 
-  record_on_click: ->
+  record_on_click: =>
     if @recordings_visible() then @hide_recordings() else @show_recordings()
 
   recordings_visible: ->
