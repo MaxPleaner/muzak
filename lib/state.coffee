@@ -6,9 +6,9 @@ module.exports =
 
   recording_filenames: []
 
-  media_recorder_chunks = []
+  media_recorder_chunks: []
 
-  analyser_data =
+  analyser_data:
     idx: 0
     num_semitones: []
     hertz: []

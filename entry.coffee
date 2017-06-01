@@ -22,7 +22,6 @@ deps = (->
 
   @NodeBuilder       = require './lib/node_builder.coffee'
   @Utils             = require './lib/utils.coffee'
-  @is_hash           = require "./lib/is_hash.coffee"
   @AttachStylesheets = require './lib/attach_stylesheets.coffee'
   @Templates         = require './lib/templates.coffee'
   @StaticDom         = require './lib/static_dom.coffee'

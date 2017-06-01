@@ -6,7 +6,7 @@ module.exports = class
     @add_event_listeners()
 
   add_event_listeners: ->
-    @StaticDom.logout.on "click" @logout_on_click()
+    @StaticDom.logout.on "click", @logout_on_click()
     @StaticDom.show_recordings().on 'click', @show_recordings_on_click
     @StaticDom.show_analyser().on 'click', @show_analyser_on_click
     @StaticDom.show_grid().on 'click', @show_grid_on_click

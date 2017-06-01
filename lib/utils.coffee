@@ -50,7 +50,7 @@ module.exports = load: (deps) -> (->
       @start_node(node) unless node.playing
       node.playing = true
 
-  @stop_nodes: (id) =>
+  @stop_nodes = (id) =>
     Object.values(@nodes[id] || {}).forEach (node) =>
       if node.playing
         node.disconnect(0)
@@ -91,19 +91,19 @@ module.exports = load: (deps) -> (->
       idx: 0
     }
 
-  @process_aggregated_analyser_data: (data) =>
+  @process_aggregated_analyser_data = (data) =>
     avg_semitones = get_average data.num_semitones
     avg_hz = get_average data.hertz
     note = @get_note avg_semitones
     @clear_aggregate_recorder_data(data)
     { note, avg_semitones, avg_hz }
 
-  @get_note: (num_semitones) =>
+  @get_note = (num_semitones) =>
     scale_notes = state.scales["standard"]
     idx = get_cycled_index(num_semitones - 4, scale_notes)
     scale_notes[idx]
 
-  @identify_note: (hz) =>
+  @identify_note = (hz) =>
     (12 * (Math.log2(hz / 440))) + 49
 
   @add_media_recorder_events = =>
