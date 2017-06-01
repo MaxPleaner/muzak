@@ -1,18 +1,11 @@
 # TODO
 
-module.exports = FirebaseWrapper = class
+module.exports = FirebaseWrapper = load: (deps) -> class
 
-  firebase_opts:
-    apiKey: "AIzaSyCLJ-tKpxLAKcOKtcy0zVumYKQhwaB7FXQ"
-    authDomain: "muzak-f826c.firebaseapp.com"
-    databaseURL: "https://muzak-f826c.firebaseio.com"
-    projectId: "muzak-f826c"
-    storageBucket: "muzak-f826c.appspot.com"
-    messagingSenderId: "551367724099"
+  { firebase, StaticDom, Templates } = deps
 
-  constructor: (deps) ->
-    { @firebase, @StaticDom, @Templates } = deps
-    @app = @firebase.initializeApp @firebase_opts
+  constructor: ->
+    @app = firebase.initializeApp @firebase_opts
     @realtime_db = firebase.database()
     @storage = firebase.storage()
 
