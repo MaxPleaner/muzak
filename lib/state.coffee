@@ -6,42 +6,14 @@ module.exports =
     @stream = @context.createMediaStreamDestination()
     @recorder = new MediaRecorder(@stram.stream)
     @stream.connect @context.destination
+    @stopping = false
+    @$containers = []
+    @last_row_idx = -1
+    @col_idxs = []
+    @recording_chunks = []
+    @audios = {}
     this
   ).apply {}
-  grid_matrix: []
-  grid:
-    matrix: []
-    context: new AudioContext()
-    stream: 
-  grid_context: new AudioContext()
-
-  # window.grid_state = (->
-  #   context = new AudioContext()
-  #   stream = context.createMediaStreamDestination()
-  #   recorder = new MediaRecorder(stream.stream)
-  #   stream.connect context.destination
-  #   recorder.onerror = (e) ->
-  #     console.log "GRID RECORD ERROR"
-  #     throw e
-  #   recorder.ondataavailable = (e) ->
-  #     grid_state.recording_chunks.push e.data
-  #   recorder.onstop = (e) ->
-  #     blob = new Blob grid_state.recording_chunks,
-  #       type: 'audio/ogg; codecs=opus'
-  #     filename = "#{Utils.random_string()}.webm"
-  #     db.store_audio(blob, filename)
-  #   {
-  #     context, stream, recorder
-  #     col_idxs: []
-  #     audios: {}
-  #     last_row_idx: -1
-  #     $containers: []
-  #     stopping: false
-  #     recording_chunks: []
-  #   }
-  # )()
-
-  last_row_idx: -1
 
   recording_filenames: []
 
