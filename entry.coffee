@@ -10,9 +10,10 @@
 # lib/template_callbacks/<template>.slim
 # ============================================================================
 
+window.$ = require 'jquery'
+
 deps = (->
 
-  @$        = require 'jquery'
   @sig2hz   = require 'signaltohertz'
   @firebase = require 'firebase/app'
 

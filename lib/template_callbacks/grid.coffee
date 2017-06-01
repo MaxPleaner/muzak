@@ -1,6 +1,7 @@
 module.exports = class
 
-  constructor: ({}) ->
+  constructor: ({state}) ->
+    @state = state
 
   build_col_html: (row_idx, col_idx) ->
     $ """
@@ -24,54 +25,50 @@ module.exports = class
       <option disabled selected value> -- select an option -- </option>
     """
     $modal.append $opts
-    $opts.on "change", ->
-      $selected = $opts.find("option:selected")
-      filename = $selected.val()
-      common_name = $selected.text()
-      row_idx = ~~$col.data("row-idx")
-      col_idx = ~~$col.data("idx")
-      row = state.grid_matrix[row_idx]
-      row[col_idx] = { cmd: "note", filename }
-      $col.addClass("has-content")
-      $col.attr("title", common_name)
-      $audio = $(".audio[data-filename='#{filename}'] audio").clone()
-      $audio.addClass("hidden")
-      $grid_cell_audio.empty().append $audio
-      $modal.remove()
+    $opts.on "change", @on_opts_change($opts, $col, $grid_cell_audio, $modal)
     $modal
 
-  # ============================================================================
-  # Event listeners for columns.
-  # ============================================================================
+  on_opts_change: ($opts, $col, $grid_cell_audio, $modal) => =>
+    $selected = $opts.find("option:selected")
+    filename = $selected.val()
+    common_name = $selected.text()
+    row_idx = ~~$col.data("row-idx")
+    col_idx = ~~$col.data("idx")
+    row = @state.grid_matrix[row_idx]
+    row[col_idx] = { cmd: "note", filename }
+    $col.addClass("has-content")
+    $col.attr("title", common_name)
+    $audio = $(".audio[data-filename='#{filename}'] audio").clone()
+    $audio.addClass("hidden")
+    $grid_cell_audio.empty().append $audio
+    $modal.remove()
+
+  col_on_click: ($col) => =>
+    if $col.hasClass "has-content"
+      $col.attr("title", "")
+      $col.text ""
+      $col.removeClass("has-content")
+      state.grid_matrix[row_idx][col_idx] = {cmd: "rest"}
+      $col.find(".grid-cell-audio").empty()
+    else
+      return if $col.find(".col-opts-modal").length > 0
+      $open_modal = show_modal($col)
+      $col.prepend $open_modal
+
+  col_on_mouseenter: ($col, $text) => =>
+    if $col.hasClass("has-content")
+      $text.text "x"
+    true
+
+  col_on_mouseleave: ($text) => =>
+    $text.text ""
+    true
 
   add_col_events = ($col, row_idx, col_idx) ->
     $text = $col.find(".col-text")
-    $col.on "click", ->
-      if $col.hasClass("has-content")
-        $col.attr("title", "")
-        $col.text ""
-        $col.removeClass("has-content")
-        state.grid_matrix[row_idx][col_idx] = {cmd: "rest"}
-        $col.find(".grid-cell-audio").empty()
-      else
-        return if $col.find(".col-opts-modal").length > 0
-        $open_modal = show_modal($col)
-        $col.prepend $open_modal
-    $col.on "mouseenter", ->
-      if $col.hasClass("has-content")
-        $text.text "x"
-       true
-    $col.on "mouseleave", ->
-      $text.text ""
-      true
-
-  # ============================================================================
-  # Columns are temporary things in this grid implementation.
-  # Whenever the number of columns in a row changes,
-  # all of the columns in the row are deleted and new ones generated.
-  # This method handles that, as well as setting up the initial state of a row.
-  # It creates the columns' HTML and attaches them to the DOM.
-  # ============================================================================
+    $col.on "click", @col_on_click($col)
+    $col.on "mouseenter", @col_on_mousenter($col, $text)
+    $col.on "mouseleave", @col_on_mouseleave($text)
 
   set_num_cols = (row_idx, num_cols, $rows, $row_wrapper, $ul) ->
     state.grid_matrix[row_idx] = ((array) ->
@@ -85,11 +82,6 @@ module.exports = class
       add_col_events($col, row_idx, col_idx)
       grid_state.$containers[row_idx].push $col
     $rows.append $row_wrapper
-
-  # ============================================================================
-  # Builds HTML for a row.
-  # This is only run when the 'add row' button is clicked.
-  # ============================================================================
 
   build_row = (idx) ->
     $ """
@@ -105,66 +97,6 @@ module.exports = class
         </div>
       </div>
     """
-
-  # ============================================================================
-  # State tracking for the grid, in a global variable.
-  # This is the private state of the grid.
-  # The public interface (state.grid_matrix) is only used to store commands,
-  # everything else happens here.
-
-  # For example if there was 1 row with 2 columns,
-  # state.grid matrix could be [[{cmd: "rest"}, {cmd: "play", filename: "foo"}]]
-  # and grid_state would contain references to the grid's audio context, recording
-  # stream, column nodes, audio nodes, per-row indexes, and play/stop state.
-
-  # As for why per-row indexes are stored; that's so the grid can be polyrhythmic.
-  # For example if one row has 3 columns and another row has 4, then they
-  # should only play the first column together every 3 repetitions.
-
-  # The grid gets it's own audio context (which should in the future be removed,
-  # and the existing audio context used) and thus another recorder, which gets
-  # event listeners declared here. 
-  # ============================================================================
-
-  window.grid_state = (->
-    context = new AudioContext()
-    stream = context.createMediaStreamDestination()
-    recorder = new MediaRecorder(stream.stream)
-    stream.connect context.destination
-    recorder.onerror = (e) ->
-      console.log "GRID RECORD ERROR"
-      throw e
-    recorder.ondataavailable = (e) ->
-      grid_state.recording_chunks.push e.data
-    recorder.onstop = (e) ->
-      blob = new Blob grid_state.recording_chunks,
-        type: 'audio/ogg; codecs=opus'
-      filename = "#{Utils.random_string()}.webm"
-      db.store_audio(blob, filename)
-    {
-      context, stream, recorder
-      col_idxs: []
-      audios: {}
-      last_row_idx: -1
-      $containers: []
-      stopping: false
-      recording_chunks: []
-    }
-  )()
-
-
-  # ============================================================================
-  # Every N frames (where N is dynamically calculated by the BPM/division settings)
-  # the next column in each row gets played.
-  #
-  # This function plays the columns, then increments the indexes.
-  # The incrementing happens optimistically, so there's a nil check which resets
-  # the index to zero if no column exists at that index
-  #
-  # Something similar is used to handle rows being deleted during playback.
-  # The deletion in grid_state happens optimistically, and if state.grid_matrix
-  # requests a row which doesn't exist, then state.grid_matrix is updated.
-  # ============================================================================
 
   play_next_note = ->
     missing_rows = []

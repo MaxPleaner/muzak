@@ -3,7 +3,7 @@ module.exports = (->
   # StaticDom builds its own methods based on a provided tree hash
   @build_dom_methods = (tree_hash, parent) =>
     for name,opts of tree_hash
-      this[name] = build_fn(name, selector, parent)
+      this[name] = @build_fn(name, opts.selector, parent)
       @build_dom_methods(opts.children, name) if opts.children
 
   @build_fn = (name, selector, parent) =>
