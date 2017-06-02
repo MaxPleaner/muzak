@@ -1,21 +1,22 @@
 module.exports = load: (deps) ->
 
-  { StaticDom, Templates, Utils } = deps
+  { firebase, StaticDom, DomGraph, Templates, Utils, build_dom_methods } = deps
 
   class
 
-    initialize: (deps) ->
-      
+    constructor: ->
+      @init_static_dom()      
       @add_layout()
       @add_auth_listeners()
       @add_keyboard_shortcuts()
-    
-    add_layout: ->
 
+    init_static_dom: ->
+      Object.assign StaticDom, build_dom_methods(DomGraph)
+
+    add_layout: ->
       StaticDom.layout_wrapper().append(Templates.$layout_content)
 
     add_auth_listeners: ->
-
       firebase.auth().onAuthStateChanged (user) ->
         if user
           Utils.logged_in(user)

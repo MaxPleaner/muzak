@@ -1,16 +1,15 @@
 module.exports = load: (deps) -> (->
 
   {
-    db, StaticDom, state, JsPatches, NodeBuilder
+    db, StaticDom, state, JsPatches, NodeBuilder, Templates
   } = deps
   { 
     replace_array, random_string, get_average, get_cycled_index
   } = JsPatches
-  {
-    recording_filenames
-  } = state
+  { current_user } = state
 
   @context = new AudioContext()
+  @analyser = @context.createAnalyser()
   @media_stream = @context.createMediaStreamDestination()
   @media_recorder = new MediaRecorder(@media_stream.stream)
   @node_builder = new NodeBuilder(@context)
@@ -20,18 +19,21 @@ module.exports = load: (deps) -> (->
       auth_content, grid_content, root_content, root_wrapper,
       grid_wrapper, credentials
     } = StaticDom
-    state.current_user.uid = user.uid
-    db.user_signed_in()
+    current_user.uid = user.uid
+    db.listen_for_audios ({filenames, common_names}) =>
+      @sync_recording_state({filenames, common_names})
+
     auth_content().remove()
-    root_wrapper().append grid_content()
+    debugger
+    root_wrapper().append Templates.$root_content
+    grid_wrapper().append Templates.$grid_content
     credentials().text "logged in as #{user.email}"
 
   @logged_out = =>
     { root_content, auth_wrapper, auth_content } = StaticDom
-    state.current_user.uid = null
+    current_user.uid = null
     root_content().remove()
     auth_wrapper().append auth_content()
-
 
   @start_node = (node) ->
     node.start() if node.start
@@ -61,7 +63,6 @@ module.exports = load: (deps) -> (->
   @init_analyser = (callback) =>
     callback ||= =>
     @add_media_recorder_events()
-    @analyser = @context.createAnalyser()
     @analyser.connect @context.destination
     @analyser.fftSize = 2048
     requestAnimationFrame @analyser_tick(callback)
@@ -125,14 +126,16 @@ module.exports = load: (deps) -> (->
     console.log("ERROR")
     throw e
 
-  @sync_recording_state = (filenames, common_names) =>
-    replace_array
+  @sync_recording_state = ({filenames, common_names}) =>
+    state.recording_filenames = filenames
+    state.recording_common_names = filenames
     storage_ref_paths = @get_storage_ref_paths()
     @get_blobs_from_storage_refs(storage_ref_paths)
-    .then @import_audio_blobs()
+    .then @import_audio_blobs
 
   @get_storage_ref_paths = =>
-    "users/#{UID}/audios/#{filename}" for filename in @filenames
+    uid = current_user.uid
+    "users/#{uid}/audios/#{filename}" for filename in state.recording_filenames
       
   @get_blobs_from_storage_refs = (storage_ref_paths) =>
     blob_promises = storage_ref_paths.map db.blob_from_ref_path
@@ -142,13 +145,13 @@ module.exports = load: (deps) -> (->
     blob_urls = blobs.map db.get_blob_url
     StaticDom.recordings().empty()
     $audios = @add_recorded_audios(blob_urls)
-    $select = @rebuild_recording_selector($audios, common_names)
+    $index_container = $ @build_recording_index_html()
+    $select = @rebuild_recording_selector($index_container, $audios)
     @add_recording_selector_events($index_container, $select)
 
-  @rebuild_recording_selector = ($audios, common_names) =>
-    $index_container = $ @build_recording_index_html()
+  @rebuild_recording_selector = ($index_container, $audios) =>
     $select = $index_container.find "select"
-    @add_recording_index_options($audios, $select, common_names)
+    @add_recording_index_options($audios, $select)
     StaticDom.recordings_index()
     .empty()
     .append($index_container)
@@ -170,10 +173,10 @@ module.exports = load: (deps) -> (->
     $(".audio[data-filename='#{filename}']")
     .removeClass("hidden")
 
-  @add_recording_index_options = ($audios, $select, common_names) =>
+  @add_recording_index_options = ($audios, $select) =>
     [0...$audios.length].forEach (idx) =>
       filename = $audios.eq(idx).data "filename"
-      common_name = common_names[idx]
+      common_name = state.recording_common_names[idx]
       $option = @build_recording_index_option filename, common_name
       $select.append $option
 
@@ -196,10 +199,10 @@ module.exports = load: (deps) -> (->
     $(blob_urls).map @add_recorded_audio
 
   @add_recorded_audio = (blob_url, idx) =>
-    filename = filenames[idx]
-    common_name = common_names[idx]
+    filename = state.recording_filenames[idx]
+    common_name = state.recording_common_names[idx]
     $audio = $ @build_recorded_audio_html(blob_url)
-    @configure_recorded_audio($audio, filename, common_name)
+    @configure_recorded_audio(blob_url, $audio, filename, common_name)
     StaticDom.recordings().prepend $audio
     $audio[0]
 
@@ -217,7 +220,7 @@ module.exports = load: (deps) -> (->
       <section>
     """
 
-  @configure_recorded_audio = ($audio, filename, common_name) =>
+  @configure_recorded_audio = (url, $audio, filename, common_name) =>
     controls = @get_recorded_audio_controls $audio
     $audio.attr("data-filename", filename)
     controls.$audio_node.attr('src', url)
@@ -235,7 +238,7 @@ module.exports = load: (deps) -> (->
     controls.$remove_btn.on "click",
       @remove_btn_on_click(source, $audio, filename)
 
-  @remove_btn_on_click = (source, $audio, filename) =>
+  @remove_btn_on_click = (source, $audio, filename) => =>
     source.disconnect()
     $audio.remove()
     db.remove_audio(filename)
@@ -249,7 +252,7 @@ module.exports = load: (deps) -> (->
     $audio.addClass "hidden"
     controls.$audui_node[0].pause()
 
-  @edit_filename_on_click = (controls, filename) =>
+  @edit_filename_on_click = (controls, filename) => =>
     db.store_audio_metadata filename,
       common_name: controls.$editable_filename.val()
 

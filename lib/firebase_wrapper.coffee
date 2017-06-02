@@ -2,25 +2,24 @@
 
 module.exports = FirebaseWrapper = load: (deps) -> class
 
-  { firebase, StaticDom, Templates } = deps
+  { firebase, StaticDom, Templates, config, state, JsPatches, Utils } = deps
+  { is_hash } = JsPatches
 
   constructor: ->
-    @app = firebase.initializeApp @firebase_opts
+    @app = firebase.initializeApp config.firebase_opts
     @realtime_db = firebase.database()
     @storage = firebase.storage()
 
-  user_signed_in: ->
-    @listen_for_audios()
-
-  listen_for_audios: ->
-    ref = @realtime_db.ref("users/#{UID}/audios")
+  listen_for_audios: (callback) ->
+    uid = state.current_user.uid
+    ref = @realtime_db.ref("users/#{uid}/audios")
     ref.on "value", (snapshot) =>
-      if UID
+      if uid
         obj = snapshot.val()
         if is_hash obj
           filenames = Object.keys(obj).map (key) -> "#{key}.webm"
           common_names = Object.values(obj).map (obj) -> obj.common_name
-          Utils.sync_recording_state(filenames, common_names)
+          callback({filenames, common_names})
       else
         ref.off "value"
         return
@@ -52,15 +51,18 @@ module.exports = FirebaseWrapper = load: (deps) -> class
       @remove_audio_metadata filename
 
   build_audio_ref: (filename) ->
-    @storage_root().child("users/#{UID}/audios/#{filename}")
+    uid = state.current_user.uid
+    @storage_root().child("users/#{uid}/audios/#{filename}")
 
   store_audio_metadata: (filename, data) ->
     file_key = filename.replace(".webm", "")
-    @realtime_db.ref("users/#{UID}/audios/#{file_key}").set(data)
+    uid = state.current_user.uid
+    @realtime_db.ref("users/#{uid}/audios/#{file_key}").set(data)
     
   remove_audio_metadata: (filename) ->
     file_key = filename.replace(".webm", "")
-    @realtime_db.ref("users/#{UID}/audios/#{file_key}").remove()
+    uid = state.current_user.uid
+    @realtime_db.ref("users/#{uid}/audios/#{file_key}").remove()
 
   storage_root: ->
     @_storage_root ||= @storage.ref()

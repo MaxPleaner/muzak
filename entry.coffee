@@ -21,19 +21,24 @@ deps = (->
   require 'firebase/storage'
   require 'firebase/database'
 
-  @NodeBuilder       = require './lib/node_builder.coffee'
-  @Utils             = require './lib/utils.coffee'
-  @AttachStylesheets = require './lib/attach_stylesheets.coffee'
-  @Templates         = require './lib/templates.coffee'
-  @StaticDom         = require './lib/static_dom.coffee'
-  @TemplateCallbacks = require './lib/template_callbacks.coffee'
-  @State             = require './lib/state.coffee'
-  @JsPatches         = require './lib/js_patches.coffee'
+  @NodeBuilder           = require './lib/node_builder.coffee'
+  @AttachStylesheets     = require './lib/attach_stylesheets.coffee'
+  @Templates             = require './lib/templates.coffee'
+  @StaticDom             = require './lib/static_dom.coffee'
+  @DomGraph              = require './lib/dom_graph.coffee'
+  @TemplateCallbacks     = require './lib/template_callbacks.coffee'
+  @state                 = require './lib/state.coffee'
+  @config                = require './lib/config.coffee'
+  @JsPatches             = require './lib/js_patches.coffee'
+  { @build_dom_methods } = require './lib/build_dom_methods.coffee'
 
-  @InitDom           = require('./lib/init_dom.coffee').load(this)
-  @FirebaseWrapper   = require('./lib/firebase_wrapper.coffee').load(this)
-  @Validations       = require('./lib/validations.coffee').load(this)
-  @db = new FirebaseWrapper(this)
+  @FirebaseWrapper       = require('./lib/firebase_wrapper.coffee').load(this)
+  @db = new @FirebaseWrapper()
+
+  @Utils                 = require('./lib/utils.coffee').load(this)
+  @InitDom               = require('./lib/init_dom.coffee').load(this)
+  @Validations           = require('./lib/validations.coffee').load(this)
+  
 
   this
 
@@ -41,5 +46,5 @@ deps = (->
 
 Object.assign window, {$, Muzak: deps}
   
-new InitDom(deps)
+new deps.InitDom()
 

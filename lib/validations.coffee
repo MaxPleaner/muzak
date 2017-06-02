@@ -1,4 +1,4 @@
-module.exports = load: ({Deps}) -> (->
+module.exports = load: (Deps) -> (->
 
   { @StaticDom } = Deps
 
