@@ -30,11 +30,13 @@ module.exports =
             children:
 
               add_row: { selector: "#add-row" }
-              record_row: { selector: "#record-row" }
+              remove_row: { selector: "#remove-row" }
               rows: { selector: "#rows" }
               bpm: { selector: "#bpm" }
               division: { selector: "#division" }
               default_row_length: { selector: "#default-row-length" }
+              record_grid: { selector: "#record-grid" }
+              play_grid: { selector: "#play-grid" }
 
       analyser:
 

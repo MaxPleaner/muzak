@@ -26,7 +26,6 @@ deps = (->
   @Templates             = require './lib/templates.coffee'
   @StaticDom             = require './lib/static_dom.coffee'
   @DomGraph              = require './lib/dom_graph.coffee'
-  @TemplateCallbacks     = require './lib/template_callbacks.coffee'
   @state                 = require './lib/state.coffee'
   @config                = require './lib/config.coffee'
   @JsPatches             = require './lib/js_patches.coffee'
@@ -44,7 +43,11 @@ deps = (->
 
 ).apply {}
 
-Object.assign window, {$, Muzak: deps}
+TemplateCallbacks     = require('./lib/template_callbacks.coffee').load(deps)
+
+new deps.AttachStylesheets()
+
+Object.assign window, {$, TemplateCallbacks, Muzak: deps}
   
 new deps.InitDom()
 

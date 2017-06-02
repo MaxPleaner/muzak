@@ -24,7 +24,6 @@ module.exports = load: (deps) -> (->
       @sync_recording_state({filenames, common_names})
 
     auth_content().remove()
-    debugger
     root_wrapper().append Templates.$root_content
     grid_wrapper().append Templates.$grid_content
     credentials().text "logged in as #{user.email}"
